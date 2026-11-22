@@ -6072,6 +6072,19 @@ export const register: Register = (on, options) => {
       void readWindow($).catch(() => undefined)
       return done
     }
+    // Claude Code's own /compact, typed: where the session.compact hook is skipped (a policy plugin can do that), the
+    // chat is compared before and after, so the size before stops counting at once.
+    if (e.command === 'compact') {
+      const before = await $.session.messages().catch(() => null)
+      const reported = await tokensReported($)
+      const doneBefore = compactHookDone
+      const done = await next(e)
+      if (compactHookDone === doneBefore && before && before.length) {
+        const after = await $.session.messages().catch(() => null)
+        if (after !== null && transcriptPrint(after) !== transcriptPrint(before)) await chatCompacted($, reported)
+      }
+      return done
+    }
     if (e.command !== PLUGIN && e.command !== `${PLUGIN}:${PLUGIN}`) return next(e)
     const wanted = await read($, suggestion)
     const arg = e.args.trim().toLowerCase()

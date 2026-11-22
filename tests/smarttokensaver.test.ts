@@ -1038,7 +1038,7 @@ describe('cache countdown', () => {
     const mocked = mock.clock(on)
     answer(on, { ephemeral_5m_input_tokens: 500 })
     // Claude Code's /compact runs and compacts (the transcript is a summary now), but the session.compact event goes
-    // past the plugin (as cc-plugin-sec-default does).
+    // past the plugin (as an organisation's policy plugin can).
     on('command.run', () => {
       chat.splice(0, chat.length, { role: 'user', text: 'core summary', toolUses: [] })
       return { text: 'ok' }
@@ -2572,6 +2572,33 @@ describe('swamp band and setup entry', () => {
     w.now.tokens = 205_000
     await w.mocked.advance(16_000)
     expect(await w.shown()).toContain('205k / 250k')
+  })
+
+  test('a typed /compact the hook never saw (a policy plugin skips it): the swamp band goes once the chat is seen to have changed', async ($, on) => {
+    const chat = [{ role: 'user', text: 'a long chat' }]
+    engine(on, {}, 'claude-opus-5-5', chat)
+    const mocked = mock.clock(on)
+    on('command.run', (_$, e) => {
+      if (e.command === 'compact') chat.splice(0, chat.length, { role: 'user', text: 'the summary' })
+      return { text: 'ok' }
+    })
+    on('session.usage', () => ({ value: { context: { tokens: 200_000, window: 250_000, percent: 80 } } }) as never)
+    await start($, on)
+    const guide = await $.ui.mount(DESK_BAND)
+    await guide.press({ key: 'setup-close' })
+    await guide.unmount()
+    await mocked.advance(16_000)
+    const shown = async () => {
+      const band = await $.ui.mount(DESK_BAND).catch(() => null)
+      const text = band ? await drawn(band) : ''
+      await band?.unmount()
+      return text
+    }
+    expect(await shown()).toContain('Chat window is getting swamped')
+    await $.command.run({ command: 'compact', args: '' })
+    expect(await shown()).not.toContain('Chat window is getting swamped')
+    await mocked.advance(31_000)
+    expect(await shown()).not.toContain('Chat window is getting swamped')
   })
 
   test('a compaction that was vetoed leaves the swamp band: the chat is as big as before', async ($, on) => {
