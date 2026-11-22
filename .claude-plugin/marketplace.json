@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "smart-token-saver",
+  "description": "Smart Token Saver: spend fewer tokens in Claude Code. Based on effortless by HeyCubit (MIT).",
+  "owner": {
+    "name": "rimford",
+    "url": "https://github.com/rimford"
+  },
+  "plugins": [
+    {
+      "name": "smarttokensaver",
+      "description": "Picks how hard Claude thinks per message, shows when a chat gets expensive, and compacts or hands off in one click.",
+      "source": "./",
+      "category": "productivity",
+      "homepage": "https://github.com/rimford/smart-token-saver"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{ "name": "effort-probe", "version": "0.1.0", "description": "Measurement only: sends each main-loop request at the effort named in EFFORT_PROBE_EFFORT and logs cache read and write." }

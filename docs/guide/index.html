@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20aria-hidden%3D%22true%22%20focusable%3D%22false%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2048%2048%22%3E%3Cpath%20d%3D%22M24%207.5L39%2016.25V33.75L24%2042.5L9%2033.75V16.25Z%22%20fill%3D%22none%22%20stroke%3D%22%2300243B%22%20stroke-width%3D%222.5%22%20stroke-linejoin%3D%22round%22/%3E%3Crect%20x%3D%2216%22%20y%3D%2218.7%22%20width%3D%2216%22%20height%3D%222.6%22%20rx%3D%221.3%22%20fill%3D%22%2300243B%22/%3E%3Crect%20x%3D%2218.5%22%20y%3D%2223.7%22%20width%3D%2211%22%20height%3D%222.6%22%20rx%3D%221.3%22%20fill%3D%22%2300243B%22/%3E%3Crect%20x%3D%2221%22%20y%3D%2228.7%22%20width%3D%226%22%20height%3D%222.6%22%20rx%3D%221.3%22%20fill%3D%22%23D97757%22/%3E%3Cpath%20d%3D%22M40.5%202.25Q40.5%207.5%2045.75%207.5Q40.5%207.5%2040.5%2012.75Q40.5%207.5%2035.25%207.5Q40.5%207.5%2040.5%202.25Z%22%20fill%3D%22%23D97757%22/%3E%3C/svg%3E">
+<!-- Smart Token Saver guide. Own look: Inter + JetBrains Mono, a warm dark cover with an orange glow and a token grid, logo badge and a token meter; navy, greys and Claude orange. Light and dark. Built by build.py. -->
+<title>Smart Token Saver Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Orange is a surface, rule, underline or text on navy (5.1:1), never text on white (3.1:1). */
+:root {
+  --navy: #00243B; --navy-deep: #001A2B; --orange: #D97757; --sky: #3CA9DC; --on-navy: #FFFFFF; --on-navy-mute: #D9C6BB;
+  --paper: #FDF8F5; --ink: #1D2733; --mute: #5E6670; --mist: #F8EDE7; --rule: #EEDCD2; --heading: #00243B;
+  --orange-wash: #FBEDE7; --cold-wash: #E8F3FA; --btn-bg: #00243B; --btn-ink: #FFFFFF;
+  --sans: Inter, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #17120F; --ink: #E4DDD8; --mute: #A39890; --mist: #221A15; --rule: #3A2C24; --heading: #F4ECE6;
+    --orange-wash: #3A2419; --cold-wash: #0F2738; --btn-bg: #D97757; --btn-ink: #00243B;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #17120F; --ink: #E4DDD8; --mute: #A39890; --mist: #221A15; --rule: #3A2C24; --heading: #F4ECE6;
+  --orange-wash: #3A2419; --cold-wash: #0F2738; --btn-bg: #D97757; --btn-ink: #00243B;
+}
+html { background: var(--paper) }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 15.5px/1.65 var(--sans); -webkit-font-smoothing: antialiased }
+.wrap { max-width: 860px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+
+/* Cover: the setup band's look, warm dark with an orange glow, faint light streaks and a grid of token dots; the logo in a badge, a token meter along the bottom. */
+.cover { position: relative; overflow: hidden; color: var(--on-navy);
+  background:
+    repeating-linear-gradient(115deg, transparent 0 120px, rgba(255,255,255,.035) 120px 150px, transparent 150px 260px),
+    radial-gradient(circle at 88% 12%, rgba(217,119,87,.30), transparent 45%),
+    radial-gradient(circle at 8% 110%, rgba(217,119,87,.18), transparent 38%),
+    radial-gradient(rgba(255,255,255,.07) 1.2px, transparent 1.4px) 0 0 / 22px 22px,
+    linear-gradient(160deg, #2B1A12, #1A100B); }
+.cover-inner { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 32px; align-items: center; padding-block: 48px 40px }
+.cover-text { min-width: 0; display: grid; gap: 20px }
+.eyebrow { display: flex; align-items: center; gap: 10px; font: 700 12px/1 var(--mono); color: var(--on-navy-mute); letter-spacing: .02em }
+.eyebrow .mark { display: inline-flex; width: 22px; height: 22px; flex: none }
+.eyebrow .mark svg { width: 100%; height: 100% }
+h1 { font: 800 clamp(30px, 5.2vw, 46px)/1.1 var(--sans); letter-spacing: -.025em; margin: 0; text-wrap: balance; max-width: 19ch }
+h1 .hl { color: var(--orange); font-style: normal }
+.sub { margin: 0; max-width: 60ch; color: var(--on-navy); opacity: .92 }
+dl.meta { display: grid; grid-template-columns: max-content 1fr; gap: 6px 20px; margin: 4px 0 0; font-size: 13.5px }
+dl.meta dt { font: 700 11.5px/1.75 var(--mono); color: var(--on-navy) }
+dl.meta dd { margin: 0; color: var(--on-navy-mute) }
+dl.meta a { color: var(--on-navy); text-decoration: underline; text-underline-offset: 2px }
+.badge { display: grid; justify-items: center; gap: 12px; padding: 22px 22px 16px; border-radius: 22px; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14); box-shadow: inset 0 1px 0 rgba(255,255,255,.08) }
+.badge svg { width: clamp(72px, 9vw, 104px); height: auto }
+.badge span { font: 700 11px/1 var(--mono); color: var(--on-navy-mute); letter-spacing: .04em }
+.meter { height: 6px; background: repeating-linear-gradient(90deg, var(--orange) 0 26px, transparent 26px 32px);
+  -webkit-mask-image: linear-gradient(90deg, #000 0 35%, rgba(0,0,0,.35) 60%, transparent 92%); mask-image: linear-gradient(90deg, #000 0 35%, rgba(0,0,0,.35) 60%, transparent 92%) }
+
+nav.toc { border-bottom: 1px solid var(--rule); background: var(--paper); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5 }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--paper) }
+nav.toc .wrap { display: flex; gap: 4px 6px; overflow-x: auto; padding-block: 9px; scrollbar-width: none }
+nav.toc a { white-space: nowrap; font: 600 12.5px/1.4 var(--sans); color: var(--mute); text-decoration: none; padding: 4px 9px; border-radius: 999px }
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--heading); background: var(--mist); box-shadow: inset 0 -2px 0 var(--orange) }
+main { padding-block: 28px 56px }
+main.wrap > * + * { margin-top: 14px }
+main.wrap > h2 { margin-top: 48px }
+main.wrap > h2:first-child { margin-top: 12px }
+main.wrap > h3 { margin-top: 26px }
+h2 { font: 750 22px/1.25 var(--sans); letter-spacing: -.015em; color: var(--heading); margin: 40px 0 14px; padding-left: 14px; border-left: 4px solid var(--orange); text-wrap: balance; scroll-margin-top: 60px }
+h3 { font: 700 15.5px/1.35 var(--sans); color: var(--heading); margin: 26px 0 8px }
+p { margin: 0 }
+strong { color: var(--heading); font-weight: 700 }
+em { color: var(--mute) }
+ul, ol { padding-left: 1.3em; display: grid; gap: 5px; margin: 0 }
+ul li::marker { color: var(--orange) }
+a { color: var(--heading); text-decoration-color: var(--orange); text-decoration-thickness: 2px; text-underline-offset: 2px }
+blockquote { margin: 0; background: var(--mist); border: 1px solid var(--rule); border-radius: 10px; padding: 12px 18px }
+blockquote p + p { margin-top: 8px }
+.table { overflow-x: auto }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums }
+th { background: var(--mist); color: var(--heading); font: 600 12.5px/1.3 var(--sans); text-align: right; padding: 9px 10px }
+td { border-bottom: 1px solid var(--rule); padding: 9px 10px; text-align: right; vertical-align: top }
+th:first-child, td:first-child { text-align: left }
+tr.pick td { background: var(--orange-wash) }
+tr.pick td:first-child { font-weight: 700; color: var(--heading) }
+table.defs td { text-align: left }
+table.defs td:first-child { font-weight: 600; color: var(--heading); white-space: nowrap; width: 1%; padding-right: 22px }
+code { font: 500 .86em var(--mono); background: var(--mist); border: 1px solid var(--rule); border-radius: 5px; padding: 1px 5px }
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 14px; border: 1px solid var(--rule); border-radius: 10px; background: var(--paper); font: 500 13.5px/1.4 var(--sans) }
+.bar .lvl { color: var(--heading); font-weight: 700 }
+.bar .dim { color: var(--mute) }
+.bar .btn { margin-left: auto; padding: 2px 10px; border-radius: 6px; background: var(--btn-bg); color: var(--btn-ink); font-weight: 600 }
+.bar.cold { background: var(--cold-wash); border-color: var(--sky) }
+.bar.hot { background: var(--orange-wash); border-color: var(--orange) }
+.cap { font-size: 12.5px; color: var(--mute) }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px }
+.card { background: var(--mist); border: 1px solid var(--rule); border-radius: 12px; padding: 14px 16px; display: grid; gap: 5px; align-content: start }
+.card b { font: 700 14.5px/1.3 var(--sans); color: var(--heading) }
+.card .tag { justify-self: start; background: var(--orange-wash); color: var(--heading); font: 700 10.5px/1 var(--mono); padding: 4px 7px; border-radius: 999px }
+.card span { font-size: 14px }
+footer { border-top: 1px solid var(--rule); color: var(--mute); font-size: 12.5px }
+footer .wrap { padding-block: 18px 28px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap }
+footer svg { height: 30px; width: auto; color: var(--heading) }
+@media (max-width: 560px) {
+  .cover-inner { grid-template-columns: 1fr; padding-block: 36px 30px } .badge { display: none }
+  dl.meta { grid-template-columns: 1fr; gap: 0 } dl.meta dd { margin-bottom: 8px }
+  table.defs td:first-child { white-space: normal }
+}
+</style>
+
+<header class="cover"><div class="wrap cover-inner">
+  <div class="cover-text">
+    <div class="eyebrow"><span class="mark"><svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path d="M24 7.5L39 16.25V33.75L24 42.5L9 33.75V16.25Z" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"/><rect x="16" y="18.7" width="16" height="2.6" rx="1.3" fill="#FFFFFF"/><rect x="18.5" y="23.7" width="11" height="2.6" rx="1.3" fill="#FFFFFF"/><rect x="21" y="28.7" width="6" height="2.6" rx="1.3" fill="#D97757"/><path d="M40.5 2.25Q40.5 7.5 45.75 7.5Q40.5 7.5 40.5 12.75Q40.5 7.5 35.25 7.5Q40.5 7.5 40.5 2.25Z" fill="#D97757"/></svg></span>Claude Code plugin · Guide</div>
+    <h1>Spend fewer tokens <em class="hl">without</em> thinking about it</h1>
+    <p class="sub">Smart Token Saver sits above the Claude Code prompt. It picks how hard Claude thinks for each message, shows when a chat gets expensive, and compacts or hands off in one click.</p>
+    <dl class="meta">
+      <dt>Version</dt><dd>Smart Token Saver 1.0.0, based on effortless 1.72.0 by HeyCubit</dd>
+      <dt>Author</dt><dd><a href="https://github.com/rimford">rimford</a> on GitHub</dd>
+      <dt>Source</dt><dd><a href="https://github.com/rimford/smart-token-saver">rimford/smart-token-saver</a></dd>
+      <dt>Updated</dt><dd>22 November 2026</dd>
+      <dt>Reference</dt><dd><a href="https://github.com/rimford/smart-token-saver/blob/main/docs/README.md">Full documentation on GitHub</a></dd>
+    </dl>
+  </div>
+  <div class="badge"><svg role="img" aria-label="Smart Token Saver logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path d="M24 7.5L39 16.25V33.75L24 42.5L9 33.75V16.25Z" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round"/><rect x="16" y="18.7" width="16" height="2.6" rx="1.3" fill="#FFFFFF"/><rect x="18.5" y="23.7" width="11" height="2.6" rx="1.3" fill="#FFFFFF"/><rect x="21" y="28.7" width="6" height="2.6" rx="1.3" fill="#D97757"/><path d="M40.5 2.25Q40.5 7.5 45.75 7.5Q40.5 7.5 40.5 12.75Q40.5 7.5 35.25 7.5Q40.5 7.5 40.5 2.25Z" fill="#D97757"/></svg><span>Smart Token Saver</span></div>
+</div><div class="meter" aria-hidden="true"></div></header>
+
+<nav class="toc" aria-label="Sections"><div class="wrap">
+  <a href="#why">Why</a><a href="#install">Install</a><a href="#bar">The bar</a><a href="#auto">Smart effort</a><a href="#cold">Cold chats</a><a href="#save-mode">Save mode</a><a href="#choose">Compact or Handoff</a><a href="#handoff">Handoff options</a><a href="#window">Compaction window</a><a href="#settings">Settings</a><a href="#privacy">Privacy</a><a href="#support">Support</a><a href="#status">What's proven</a><a href="#more">More detail</a><a href="#credits">Credits</a>
+</div></nav>
+
+<main class="wrap">
+  <h2 id="why">Why it exists</h2>
+  <p>Every message you send in Claude Code sends the whole chat again. While the prompt cache is warm, that costs little: Opus 5.5 reads the history at 5 % of the normal price. After a pause the cache goes cold (one hour on a subscription, five minutes on API credits), and the next message pays full price for everything.</p>
+  <p>So long chats and pauses are where the money goes. Smart Token Saver helps in three ways:</p>
+  <ul>
+    <li>It picks the effort per message, so a quick question doesn't run as deep as a refactor.</li>
+    <li>It shows how full the chat is and how long the cache stays warm.</li>
+    <li>It compacts or hands off in one click, and picks the cheaper way when the chat is cold.</li>
+  </ul>
+
+  <h2 id="install">Install</h2>
+  <p>Paste this into any Claude Code chat and press Enter:</p>
+  <blockquote><p><code>/plugin install smarttokensaver --marketplace rimford/smart-token-saver</code></p></blockquote>
+  <p>On an older Claude Code, add the marketplace first with <code>/plugin marketplace add rimford/smart-token-saver</code>, then <code>/plugin install smarttokensaver@smart-token-saver</code>. In the desktop app, <em>+ → Plugins → Add marketplace</em> takes <code>rimford/smart-token-saver</code> as well.</p>
+  <p>It needs a current Claude Code (tested with 2.1.330). If no bar shows up in the new chat, <code>/plugin</code> says why the plugin did not load; most often Claude Code is too old.</p>
+  <p>Then open a new chat. That's it. Plugins load when a chat starts, so the chat you installed from doesn't show the bar yet.</p>
+  <p>In the new chat a short setup opens above the prompt. After a welcome page it asks three questions, each with a line that explains every option: how much Smart should lean cheaper or smarter (<em>Balanced</em> is recommended), which compaction window to use (300k is recommended) and whether the panels follow the app or are always dark or light. Nothing is saved before <em>Finish</em>; a green <em>Setup complete</em> then sums up what was set. If effortless (the public plugin Smart Token Saver is based on) or a second copy of Smart Token Saver is installed, the setup offers to remove it. Run the setup again any time with <code>/smarttokensaver setup</code>.</p>
+
+  <h2 id="bar">The bar</h2>
+  <div class="bar" aria-label="Example of the bar"><span class="lvl">High · Opus 5.5</span><span>◔ 123k / 300k (41%)</span><span class="dim">cache 47:12</span><span class="btn">Reduce context</span></div>
+  <p class="cap">Smart picked High for this message. The chat holds 123k tokens, 41 % of its 300k window. The cache stays warm for 47 more minutes.</p>
+  <div class="table"><table class="defs"><tbody>
+    <tr><td>High · Opus 5.5</td><td>The effort for this message and the model. Hover it to see why Smart picked it.</td></tr>
+    <tr><td>◔ 123k / 300k (41%)</td><td>How full the chat is, in tokens and percent of the window it compacts at, as Claude Code reports them (the same figures as <code>/context</code>). It says <em>default</em> when Claude Code's own window is in force. Claude Code compacts about 33k below the window, at 267k for 300k.</td></tr>
+    <tr><td>cache 47:12</td><td>Time until the cache goes cold. It turns yellow, then red, as time runs out.</td></tr>
+    <tr><td>→|← Reduce context / Handoff</td><td>Usually <em>Reduce context</em>, with an icon of two arrows meeting at a line: it opens the compact bar, "Compact session or <em>Handoff instead</em>" on the left, a note for the summary and <em>Compact</em> on the right. It changes to Handoff when Haiku 5.5 thinks a fresh chat would work better, for example because the task is done and you start something new; Compact then sits beside it.</td></tr>
+    <tr><td>Smart / Default</td><td>The switch: <em>Smart</em> picks the effort for each message, <em>Default</em> keeps the effort the chat has in the app. With Default, the word on the left says what the chat runs on, as the app's footer does, for example <em>Opus 5.5 · Medium</em>.</td></tr>
+    <tr><td>⚙</td><td>Opens Settings (pressed again, closes them). Before the setup is done, the same place offers the setup.</td></tr>
+    <tr><td>Orange mark</td><td>The plugin's logo. It pulses softly while Smart decides the effort for your message.</td></tr>
+  </tbody></table></div>
+  <h3 id="buttons-only">Buttons only: the row under the prompt</h3>
+  <p>With Settings → Customize → <em>Show</em> set to <em>Buttons only</em>, the bar above the prompt goes away and a small row sits under the prompt, left of Claude Code's own model and effort. From left to right:</p>
+  <div class="table"><table class="defs"><tbody>
+    <tr><td>☰</td><td>Brings the bar above the prompt back (the same as Customize → Show → <em>Bar</em>).</td></tr>
+    <tr><td>⏻</td><td>Switches Smart effort on and off, like the Smart / Default switch in the bar (<code>/smarttokensaver auto</code>).</td></tr>
+    <tr><td>→|←</td><td>Reduce: opens the compact bar, the same as <em>Reduce context</em> in the bar, with <em>Handoff instead</em> in it. Pressed again, it closes the bar. It shows <em>…</em> while a handoff is being written.</td></tr>
+    <tr><td>⚙</td><td>Settings, or <em>Setup</em> until the setup is done.</td></tr>
+    <tr><td>Low, Medium, High</td><td>The effort Smart picked for the last message, in purple (in orange while Save mode is on). <em>Default</em> when Smart is off, <em>Paused</em> on models where an effort change would cost the cache.</td></tr>
+    <tr><td>cache 47:12 / ❄ Cold</td><td>The cache countdown, as in the bar: yellow from 20 minutes, red from 5, then ❄ Cold.</td></tr>
+  </tbody></table></div>
+
+  <h2 id="auto">Smart effort</h2>
+  <p>With Smart on, Haiku 5.5 reads each message before it goes out and picks Low, Medium or High. "What does this function do?" gets Low. "Find why the totals are off across these three jobs" gets High. It takes about a second and uses your own Claude login.</p>
+  <p>Smart stops at High. The two levels above it cost a lot more and rarely help in everyday work. You can change the range in Settings.</p>
+  <p>Smart runs on Opus 5.5, Sonnet 5.5, Haiku 5.5 and Fable 5.2. On these models the effort can change from one message to the next without losing the prompt cache: measured on each of the four, 99 to 100 % of the chat was still read from the cache after a change. On older models (Fable 5.1, Opus 5 and earlier) a change makes the next message reread most of the chat at full price, so Smart pauses there and the bar says <em>Smart paused</em>.</p>
+  <p>A level you name in your message ("use max effort for this") is taken as said.</p>
+  <p>On Default, every message runs at the effort you set in the app. If you change the effort yourself, the switch goes to Default at your next message and tells you. Your choice always wins.</p>
+  <blockquote><p><strong>Not proven yet:</strong> whether Smart effort saves money is still open. The first measurements are too few. See <a href="#status">What's proven</a>.</p></blockquote>
+
+  <h2 id="cold">Cold chats</h2>
+  <p>When the countdown runs out on a big chat, the bar turns light blue:</p>
+  <div class="bar cold" aria-label="Example of the cold bar"><span class="lvl">✦ Chat went cold</span><span class="dim">Rereads 210k tokens at full price.</span><span class="btn">Handoff</span></div>
+  <p class="cap">It shows from about 110k to 150k tokens, depending on your compaction window (30k below the compaction point, but never below 110k or above 150k). Smaller chats are cheap enough to reread.</p>
+  <p>You can carry on, compact or hand off. The next section compares them.</p>
+
+  <h2 id="save-mode">Running low and Save mode</h2>
+  <p>Your Claude plan has two usage limits: one for the last 5 hours and one for the week. Once either passes 80 %, an orange band shows above the prompt:</p>
+  <div class="bar hot" aria-label="Example of the running-low band"><span class="lvl">✦ Running low</span><span class="dim">80% of your weekly limit used · resets Tue 08:00</span><span class="btn">Save mode</span><span class="dim">Skip for now</span><span class="dim">Skip this week</span></div>
+  <p class="cap">It names the fuller of the two limits and when it resets. Its second line has the reset time, a link here and one to the switch in Settings → Effort.</p>
+  <p><strong>Save mode</strong> stretches what's left. While it's on, Smart effort picks at most Medium. A message Smart would have sent at High goes at Medium; Low and Medium stay as they are. High thinks longer and writes more, and that's what eats the limit fastest, so capping it gives you noticeably more messages before you hit the wall. Everyday questions don't change at all.</p>
+  <ul>
+    <li><strong>Turn it on</strong> with <em>Save mode</em> in the band (<kbd>s</kbd> in the terminal), with the <em>Save mode</em> switch in Settings → Effort (there at any time, also before a limit runs low), or with <code>/smarttokensaver save</code>. The button then reads <em>Save mode on</em>.</li>
+    <li><strong>It ends by itself</strong> when the limit resets, the 5-hour one or the weekly one, whichever the band showed. Turned on in Settings while no limit runs low, it lasts 5 hours. Press the button or the switch again to turn it off earlier. It holds in the chat where you turned it on.</li>
+    <li><strong>It only touches Smart effort.</strong> If you set the effort yourself, or the switch is on Default, your choice wins as always. Model, compaction window and everything else stay as they are, and no message is held back.</li>
+    <li><strong>Skip for now</strong> hides the band until the limit is 5 points fuller: skipped at 80 %, it comes back at 85 %, then 90 % and 95 %.</li>
+    <li><strong>Skip this week</strong> hides it until the weekly limit resets (for the 5-hour limit the button reads <em>Skip until reset</em>). The next limit that runs low shows it again. The <em>Running low</em> alert itself can be turned off in Settings → Handoff &amp; alerts.</li>
+  </ul>
+  <p>When to use it: a long task should still finish before the reset, or you want to keep some room for later in the week. When not to: you're in the middle of something hard where High matters more than the limit. Then leave it off and maybe hand off to a fresh chat instead, which saves more anyway (see <a href="#choose">Compact, Handoff or carry on</a>).</p>
+
+  <h2 id="choose">Compact, Handoff or carry on</h2>
+  <div class="cards">
+    <div class="card"><b>Carry on</b><span>Your next message rereads the whole chat once at full price. After that it's cheap again until the next pause.</span></div>
+    <div class="card"><span class="tag">Same task</span><b>Compact</b><span>Claude replaces the chat with a summary. You stay in the same chat and keep going.</span></div>
+    <div class="card"><span class="tag">Next task</span><b>Handoff</b><span>Claude writes a short note, clears the chat and starts fresh with the note as the first message.</span></div>
+  </div>
+  <h3>What each costs</h3>
+  <p>Example: a cold chat with 210k tokens on Opus 5.5, at list prices. On a subscription the same ratios apply to your usage limit.</p>
+  <div class="table"><table>
+    <thead><tr><th>Option</th><th>Once</th><th>Per message after</th><th>Chat size after</th></tr></thead>
+    <tbody>
+      <tr><td>Carry on</td><td>$1.05 to $1.70</td><td>$0.04</td><td>210k and growing</td></tr>
+      <tr class="pick"><td>Compact, cold (Haiku 5.5 writes it)</td><td>$0.13</td><td>$0.01</td><td>20k to 50k</td></tr>
+      <tr><td>Compact with the chat's model</td><td>$1.00</td><td>$0.01</td><td>20k to 50k</td></tr>
+      <tr class="pick"><td>Handoff, Quick (Haiku 5.5 writes it)</td><td>$0.11</td><td>$0.002</td><td>about 10k</td></tr>
+    </tbody>
+  </table></div>
+  <p class="cap">Prices: Opus 5.5 $4 per million input tokens, $0.20 when cached, $20 output. Haiku 5.5 $0.50 input and $2.50 output above 100k tokens.</p>
+  <p>Over ten more messages, carrying on costs about $1.20 to $1.90 more than compacting or handing off. Between Compact and Handoff the difference is a cent or less per message.</p>
+  <h3>Which to pick</h3>
+  <ul>
+    <li><strong>Same task, and the details matter</strong> (numbers, decisions, what you tried): Compact. You can add a note on what the summary must keep, like "keep the test results and the open question about the date filter".</li>
+    <li><strong>One part is done and a new one starts:</strong> Handoff. The new chat is small and isn't distracted by old history.</li>
+    <li><strong>You're finished:</strong> do nothing. A chat you don't touch costs nothing.</li>
+  </ul>
+  <h3>Who writes the summary</h3>
+  <p>Settings → Model → <em>Summaries</em>. <strong>Auto</strong> (default) uses Haiku 5.5 when the cache is cold (about $0.13 instead of $1 for 210k) and the chat's own model when it's warm, where it reads the chat cheaply and writes the better summary. <strong>Chat's model</strong> always uses the chat's model. If Haiku 5.5 fails, the chat's model takes over.</p>
+  <blockquote><p>Haiku 5.5 sees long tool output shortened, so its summary has less detail. If a chat is full of details you need, use Handoff, or switch to <em>Chat's model</em> for that one compaction.</p></blockquote>
+
+  <h2 id="handoff">Handoff options</h2>
+  <p>The Handoff button opens a bar with two choices: who writes the note, and what happens next. A few dim words beside them say what the picked kind is, and a line under them says what the picked way on does. On the left, <em>Compact instead</em> switches to the compact bar. The bar remembers your last choice.</p>
+  <h3>Quick or Full</h3>
+  <div class="cards">
+    <div class="card"><span class="tag">Recommended</span><b>Quick</b><span>Written in seconds from the chat, without tools. On a cold chat Haiku 5.5 writes it. The git state in it is what the chat last saw.</span></div>
+    <div class="card"><b>Full</b><span>A normal turn with tools. It checks git, commits and pull requests (asking GitHub when the <code>gh</code> tool is installed), rewrites <code>HANDOFF.md</code> in your project and then answers with the note. Slower, costs a full turn, and leaves a file in your repo.</span></div>
+  </div>
+  <p>Use Full before a longer break or when the exact git state matters. In Settings you can point Full at your own handoff skill.</p>
+  <h3>What happens next</h3>
+  <div class="cards">
+    <div class="card"><span class="tag">Recommended</span><b>Clear &amp; wait</b><span>The chat is cleared. The new chat sums up in two lines where things stand and waits. You check the note before anything runs.</span></div>
+    <div class="card"><b>Clear &amp; carry on</b><span>The chat is cleared and the new chat starts on the next step right away. Faster, but it works from a note you haven't read.</span></div>
+    <div class="card"><b>Keep chat &amp; copy</b><span>Nothing is cleared. The note goes to your clipboard, for a new chat somewhere else or to keep the old one.</span></div>
+  </div>
+  <p>The plugin never overwrites a draft in your prompt box. If a note can go neither into the new chat nor to the clipboard, it is kept, and <code>/smarttokensaver handoff note</code> shows it.</p>
+
+  <h2 id="window">The compaction window</h2>
+  <p>Opus 5.5 and Fable 5.2 can hold one million tokens, and by default Claude Code lets a chat grow to almost that before it compacts. Every message rereads the whole chat: a chat at 800k pays for 800k tokens on every message, even for a short follow-up. A limit on the chat's size (the compaction window) is the plugin's biggest saving. The default is 300k; such a chat compacts at about 267k.</p>
+
+  <h3 id="window-savings">What a limit saves</h3>
+  <p>Seven weeks of one heavy user's real chats, replayed message by message under different limits, at list price:</p>
+  <div class="table"><table>
+    <thead><tr><th>Window</th><th>Cost vs. no limit (1M)</th><th>Cost vs. 400k</th><th>Compactions per week</th></tr></thead>
+    <tbody>
+      <tr><td>200k</td><td>−32 %</td><td>−13 %</td><td>131</td></tr>
+      <tr class="pick"><td>300k (recommended)</td><td>−30 %</td><td>−9 %</td><td>40</td></tr>
+      <tr><td>400k</td><td>−23 %</td><td>±0</td><td>20</td></tr>
+      <tr><td>600k</td><td>−12 %</td><td>+14 %</td><td>9</td></tr>
+      <tr><td>No limit (1M)</td><td>±0</td><td>+29 %</td><td>4</td></tr>
+    </tbody>
+  </table></div>
+  <p id="window-expect">The saving comes only from chats that grow past the limit. If you mostly ask short questions in fresh chats, expect little. If you work in long sessions, expect those sessions to cost about half; across everything, about a third less than without a limit.</p>
+  <p id="window-300k"><strong>Why 300k and not less:</strong> below 300k the saving flattens (250k saves only 3 % more), while compactions keep doubling, and each one takes about a minute and a half and drops detail from the chat. The full measurement, with what is not known yet, is in the <a href="https://github.com/rimford/smart-token-saver/blob/main/docs/compaction-window.md">documentation</a>.</p>
+
+  <h3>Changing it</h3>
+  <ul>
+    <li>Settings → <em>Context size</em> → <em>New chats</em>, or <code>/smarttokensaver window 350k</code> for any value from 100k to 1M. <em>Claude Code default</em> leaves the limit to Claude Code.</li>
+    <li>If your organization sets a limit, it wins, and the card says so.</li>
+  </ul>
+  <h3>Context size for one chat</h3>
+  <p>Sometimes a chat is worth keeping whole: a long debugging session, a big review, a plan you are halfway through. Give that one chat a bigger limit while your default stays as it is:</p>
+  <ul>
+    <li>Settings → <em>Context size</em> → <em>This chat only</em>: pick a size, or <em>Your default</em> to go back.</li>
+    <li>Near compaction, the "Chat window is getting swamped" warning offers the same choice as <em>Context size</em>, next to Handoff and Compact.</li>
+    <li>Or type <code>/smarttokensaver window this 500k</code>, and <code>/smarttokensaver window this reset</code> to undo it.</li>
+  </ul>
+  <p>The card says <em>asked</em> until Claude Code confirms the size, then <em>in use</em>. A bigger window isn't free: every message reads the whole chat. Use it when losing detail would hurt more than the extra cost.</p>
+  <p>Everything that depends on the limit adjusts itself: the ring, the cold bar, the "getting swamped" warning (from 227k at 300k, from 507k at 1M) and the handoff check.</p>
+  <h3>When the plugin can't set it</h3>
+  <p>Some organizations don't let plugins change Claude Code settings. The plugin notices that, says so at the top of the Context size card and in the setup, and offers the way that works:</p>
+  <ul>
+    <li><strong>New chats:</strong> the size is saved in <code>~/.claude/settings.json</code> (<code>autoCompactWindow</code>), and the plugin tells you so. The file as it was is kept beside it as a backup.</li>
+    <li><strong>This chat:</strong> the card shows <code>/autocompact</code> with the size, with <em>Paste into chat</em> and <em>Copy</em>. Nothing goes into the chat by itself: you send the command.</li>
+    <li><strong>If the settings file is closed too:</strong> <em>Paste into new chat</em> opens a new chat with a request to write the size into the file, for you to send and allow.</li>
+  </ul>
+  <p>Every step of this is described in the <a href="https://github.com/rimford/smart-token-saver/blob/main/docs/compaction-window.md#where-the-plugin-cannot-set-it">documentation</a>.</p>
+
+  <h2 id="settings">Settings</h2>
+  <p>Open Settings with ⚙ in the bar or under the prompt, or with <code>/smarttokensaver settings</code>. The overview shows one card per part, each with a short line on what is set. Click a card to open it; <em>← Settings</em> top left goes back. Every change saves itself the moment you make it; <em>✓ Saved</em> shows top right for a moment, and the change reaches every open chat within a few seconds. Each open card has one row per setting: its name, the control, and a short line on what it does. The <em>Guide</em> button top right, next to ✕, opens the matching section of this page.</p>
+
+  <h3 id="settings-effort">Effort</h3>
+  <p>The overview line says the lean and the limits, for example <em>Balanced · low to high</em>.</p>
+  <div class="table"><table class="defs"><tbody>
+    <tr><td>Lean</td><td>Five stops from <em>Cheapest</em> to <em>Smartest</em>. <em>Balanced</em> (recommended) lets Haiku 5.5 decide alone. <em>Cheaper</em> and <em>Smarter</em> only tip close calls, when Haiku is torn between two levels; <em>Cheapest</em> and <em>Smartest</em> move more messages down or up.</td></tr>
+    <tr><td>Limits</td><td><em>Min</em> and <em>Max</em>: the lowest and highest level Smart may pick (default Low to High).</td></tr>
+    <tr><td>Subagents</td><td>Off by default: subagents run at the chat's effort. On, Smart reads each subagent's task first and picks its effort, Medium or more.</td></tr>
+    <tr><td>Save mode</td><td>Keeps Smart at Medium or below until the usage limit resets. The Running low band offers the same switch (see <a href="#save-mode">Save mode</a>).</td></tr>
+  </tbody></table></div>
+  <p class="cap">Commands: <code>/smarttokensaver auto</code> switches Smart on and off, <code>/smarttokensaver save</code> switches Save mode, <code>/smarttokensaver stats</code> sums up the efforts of this chat.</p>
+
+  <h3 id="settings-model">Model</h3>
+  <p>The overview line says whether the chat keeps its model.</p>
+  <div class="table"><table class="defs"><tbody>
+    <tr><td>Simple prompts</td><td><em>Always the chat's</em> (default): every message keeps your model, only the effort changes. <em>Cheaper when it can</em> lets Haiku 5.5 or Sonnet 5.5 answer simple messages. It is marked experimental because it rarely saves anything yet: the prompt cache belongs to one model, so the other model reads the whole chat again at full price, which often costs more than the cheaper model saves. It only pays on short chats or after a long pause, when the cache is cold anyway, and the answer can differ in style from your model's. It is kept to measure it, not as a recommendation.</td></tr>
+    <tr><td>Summaries</td><td>Who writes the summary when a chat compacts. <em>Auto</em>: Haiku 5.5 on a cold cache, the chat's model on a warm one, whichever is cheaper. <em>Chat's model</em>: always the chat's model. Where your organisation keeps plugins out of compaction, a note says the chat's model writes every summary.</td></tr>
+  </tbody></table></div>
+
+  <h3 id="settings-customize">Customize</h3>
+  <p>The overview line says what shows and how it looks, for example <em>Bar · automatic</em>.</p>
+  <div class="table"><table class="defs"><tbody>
+    <tr><td>Show</td><td><em>Bar</em>: effort, context, cache and buttons in one bar above the prompt. <em>Buttons only</em>: just the small row under the prompt (see <a href="#buttons-only">Buttons only</a>).</td></tr>
+    <tr><td>Panels</td><td><em>Automatic</em> follows the app, light or dark. <em>Always dark</em> and <em>Always light</em> colour the plugin's panels only: they look as they do in Automatic in that mode, and the app keeps its own mode. In the terminal they paint the panels dark or light as well.</td></tr>
+    <tr><td>In the bar</td><td><em>Cache countdown</em>: the clock after the context ring, time until the cache goes cold (on by default). <em>Why this effort</em> (off by default): beside Smart the bar names who picked the current effort, <em>(Haiku 5.5)</em> or <em>(You)</em>; hover over Smart and the bar shows the reason in a few words, for example why a message got Low. Useful while you get to know Smart; off, the bar stays quieter.</td></tr>
+    <tr><td>Remove</td><td><em>Uninstall</em> (press twice) removes the plugin.</td></tr>
+  </tbody></table></div>
+
+  <h3 id="settings-handoff">Handoff &amp; alerts</h3>
+  <p>The overview line says who writes a Full handoff and when the context alert comes, for example <em>Built in · alert at Auto</em>.</p>
+  <div class="table"><table class="defs"><tbody>
+    <tr><td>Handoff skill</td><td>Who writes a Full handoff: Smart Token Saver's own (built in), or one of your installed skills or commands (see <a href="#handoff">Handoff options</a>).</td></tr>
+    <tr><td>Handoff button</td><td><em>When advised</em> (default): the bar's button turns into Handoff only when Haiku 5.5 thinks a fresh chat beats compacting. <em>Always</em>: Compact and Handoff sit side by side in the bar as two quiet buttons; each opens its own bar, and each bar can switch to the other. Handoff only lights up once Haiku 5.5 advises it.</td></tr>
+    <tr><td>Alerts</td><td>Which bands show above the prompt. <em>Context</em>: the chat is nearly full, at <em>Auto</em> (recommended, see <a href="#window">the compaction window</a>) or a fixed percent. <em>Running low</em>: a usage limit is close. <em>Cold cache</em>: the next message pays full price. An alert's ✕ only closes it for now; the box here switches it off.</td></tr>
+  </tbody></table></div>
+  <p class="cap">Commands: <code>/smarttokensaver handoff</code> writes a quick handoff at once with your last choice, <code>/smarttokensaver handoff full</code> a full one.</p>
+
+  <h3 id="settings-context">Context size</h3>
+  <p>The overview line says the size new chats get and, when this chat runs on another one, that too: <em>New &amp; current: 300k</em>, or <em>New: 300k / Current: 400k</em>.</p>
+  <div class="table"><table class="defs"><tbody>
+    <tr><td>New chats</td><td>The compaction window every new chat gets (default 300k, recommended). Pick a size from the list; it saves for new chats at once.</td></tr>
+    <tr><td>This chat only</td><td>Another size for the chat you are in, for a task that needs more detail than a compaction keeps. New chats keep your default. The row says "in use" once Claude Code confirms the size.</td></tr>
+    <tr><td>Where plugins may not set it</td><td>A line on top says so, and the card shows the <code>/autocompact</code> command with <em>Paste into chat</em> and <em>Copy</em>, or <em>Paste into new chat</em>, which opens a chat that asks Claude to write the size into your settings file for you to allow.</td></tr>
+  </tbody></table></div>
+  <p class="cap">Commands: <code>/smarttokensaver window 400k</code> sets the size for new chats, <code>/smarttokensaver window this 500k</code> for this chat only.</p>
+
+  <h3 id="settings-about">About</h3>
+  <p>Your version and the public effortless version it builds on, with the link to the original project.</p>
+
+  <h3 id="support">Support</h3>
+  <p>The overview line reads <em>Update · Report a bug</em>. The card's part <em>This plugin</em>:</p>
+  <div class="table"><table class="defs"><tbody>
+    <tr><td>Updates</td><td>Smart Token Saver checks <a href="https://github.com/rimford/smart-token-saver">its own repository</a> every six hours for a newer version. <em>Check now</em> looks at once, <em>Turn off</em> stops the checks in every open chat. In a clone of the repository it says <em>From your clone</em>: <code>git pull</code> updates it.</td></tr>
+    <tr><td>Report a bug</td><td><em>Open an issue</em> opens a new GitHub issue with your plugin version filled in and nothing else.</td></tr>
+  </tbody></table></div>
+  <p class="cap">Command: <code>/smarttokensaver support</code> shows the link for a bug report.</p>
+  <h3 id="commands">All commands</h3>
+  <div class="table"><table class="defs"><tbody>
+    <tr><td><code>/smarttokensaver setup</code></td><td>Runs the setup again.</td></tr>
+    <tr><td><code>/smarttokensaver settings</code></td><td>Opens Settings.</td></tr>
+    <tr><td><code>/smarttokensaver auto</code></td><td>Switches Smart effort on or off.</td></tr>
+    <tr><td><code>/smarttokensaver save</code></td><td>Switches Save mode on or off.</td></tr>
+    <tr><td><code>/smarttokensaver window &lt;size&gt;</code></td><td>The compaction window for new chats, e.g. <code>300k</code> or <code>1M</code>.</td></tr>
+    <tr><td><code>/smarttokensaver window this &lt;size&gt;</code></td><td>Another size for this chat only.</td></tr>
+    <tr><td><code>/smarttokensaver handoff</code>, <code>handoff full</code></td><td>Writes a quick or a full handoff at once.</td></tr>
+    <tr><td><code>/smarttokensaver handoff note</code></td><td>Shows a handoff note the plugin kept because it could go nowhere.</td></tr>
+    <tr><td><code>/smarttokensaver stats</code></td><td>Sums up the efforts and tokens of this chat.</td></tr>
+    <tr><td><code>/smarttokensaver guide</code></td><td>Opens this page.</td></tr>
+    <tr><td><code>/smarttokensaver support</code></td><td>The link for a bug report.</td></tr>
+  </tbody></table></div>
+
+  <h2 id="privacy">Privacy</h2>
+  <ul>
+    <li>Picking the effort, checking for a handoff and Haiku 5.5 summaries go through the same connection Claude Code uses, with your own Claude login. No extra service sees your prompts. If your Claude Code runs through a gateway, these calls do too.</li>
+    <li>The only network call of its own is the update check against this plugin's GitHub repository, done by Claude Code's own <code>claude plugin marketplace update</code>. <em>Turn off</em> in Settings → Support stops it. <code>/smarttokensaver guide</code> opens this page in your browser when you ask.</li>
+    <li>Where Claude Code does not let the plugin set the compaction window directly, setting it (Setup, the Context size card) writes it into <code>~/.claude/settings.json</code>; the file as it was is kept beside it (<code>settings.json.smarttokensaver.bak</code>, and the two copies before it). That value stays after an uninstall until you remove <code>autoCompactWindow</code> from the file.</li>
+    <li>No usage log and no analytics. The plugin keeps its own settings under <code>~/.claude/smarttokensaver/</code>; a Full handoff saves <code>HANDOFF.md</code> in your project.</li>
+  </ul>
+  <p>The public effortless plugin can send prompts to an outside judge service. Smart Token Saver removes that.</p>
+
+  <h2 id="updates">Updates</h2>
+  <p>Settings → Support → <em>Updates</em> checks <a href="https://github.com/rimford/smart-token-saver">rimford/smart-token-saver</a> every six hours, the same way Claude Code updates any marketplace. When a newer version is out, a card above the prompt offers <em>Update</em>, <em>Later</em> or <em>Skip</em>. <em>Update</em> installs it for every new chat; the chat you are in keeps the old version unless you reload it (a message says how). Claude Code's own marketplace auto-update works too, if you switch it on for this marketplace.</p>
+  <p>Found a bug? Settings → Support → <em>Report a bug</em>, or <code>/smarttokensaver support</code> for the link.</p>
+
+  <h2 id="status">What's proven</h2>
+  <ul>
+    <li><strong>The compaction window saves money.</strong> The replay above holds up for heavy use.</li>
+    <li><strong>Compacting or handing off a cold chat saves money.</strong> That follows from the prices.</li>
+    <li><strong>Whether Smart effort saves money is open.</strong> The first measurements are too few and point both ways.</li>
+  </ul>
+
+  <h2 id="more">More detail</h2>
+  <p>This page is the short manual. The repository holds the full reference:</p>
+  <ul>
+    <li><a href="https://github.com/rimford/smart-token-saver/blob/main/docs/how-it-works.md">How it works</a>: every part of the bar, Smart effort, Save mode, Compact and Handoff.</li>
+    <li><a href="https://github.com/rimford/smart-token-saver/blob/main/docs/compaction-window.md">The compaction window</a>: the whole measurement, and each step where plugins may not set the window.</li>
+    <li><a href="https://github.com/rimford/smart-token-saver/blob/main/docs/settings-and-commands.md">Settings and commands</a>, <a href="https://github.com/rimford/smart-token-saver/blob/main/docs/privacy-and-files.md">Privacy and files</a>, <a href="https://github.com/rimford/smart-token-saver/blob/main/docs/measurements.md">Measurements</a>, <a href="https://github.com/rimford/smart-token-saver/blob/main/docs/known-limitations.md">Known limitations</a>.</li>
+    <li>Working on the plugin itself: <a href="https://github.com/rimford/smart-token-saver#for-maintainers">For maintainers</a> in the README.</li>
+  </ul>
+
+  <h2 id="credits">Credits</h2>
+  <p>Smart Token Saver is based on effortless, written by <a href="https://github.com/HeyCubit/effortless">HeyCubit</a> under the MIT licence. Smart Token Saver 1.0.0 builds on effortless 1.72.0. It changes the defaults, adds the compaction window and the explanations, changes how updates work, and removes the outside judge service. The licence and both copyright notices ship with the plugin.</p>
+</main>
+
+<footer><div class="wrap"><span>Smart Token Saver 1.0.0 · 22 November 2026</span><svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path d="M24 7.5L39 16.25V33.75L24 42.5L9 33.75V16.25Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><rect x="16" y="18.7" width="16" height="2.6" rx="1.3" fill="currentColor"/><rect x="18.5" y="23.7" width="11" height="2.6" rx="1.3" fill="currentColor"/><rect x="21" y="28.7" width="6" height="2.6" rx="1.3" fill="#D97757"/><path d="M40.5 2.25Q40.5 7.5 45.75 7.5Q40.5 7.5 40.5 12.75Q40.5 7.5 35.25 7.5Q40.5 7.5 40.5 2.25Z" fill="#D97757"/></svg></div></footer>
