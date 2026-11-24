@@ -319,6 +319,8 @@ const FROST_HEIGHT = 64
 // The setup band's art: tall enough for its rows, the art's own shape kept (it is cut from the left).
 const SETUP_ART_W = 2200
 const SETUP_ART_H = 400
+/** Under this many cells across the band the setup takes its narrow layout (the window step's sizes need about 88: at 80 Individual was cut). */
+const SETUP_NARROW_COLUMNS = 92
 // The band when the context is swamped: murky green, bubbles rising, slow ripples.
 const SWAMP_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="440" height="64" viewBox="0 0 360 30" preserveAspectRatio="xMaxYMid slice"><style>:root{color-scheme:light dark}html,body{margin:0}svg{background:transparent;display:block}.b{fill:none;stroke:#cfe8b8;stroke-width:.5;opacity:0;animation-name:rise;animation-timing-function:ease-in;animation-iteration-count:infinite}@keyframes rise{0%{opacity:0;transform:translate(0,0)}15%{opacity:.7}80%{opacity:.5}100%{opacity:0;transform:translate(3px,-30px)}}.rp{fill:none;stroke:#a7c98f;stroke-width:.4;stroke-linecap:round;opacity:.25;animation:drift 7s ease-in-out infinite}@keyframes drift{0%,100%{transform:translate(0,0);opacity:.15}50%{transform:translate(4px,0);opacity:.4}}.mk{animation:mk 8s ease-in-out infinite}@keyframes mk{0%,100%{opacity:.85}50%{opacity:1}}</style><defs><linearGradient id="bog" x1="0" x2="1"><stop offset=".43" stop-color="#4f7a3a" stop-opacity="0"/><stop offset=".62" stop-color="#4f7a3a" stop-opacity=".16"/><stop offset=".85" stop-color="#6f9a4f" stop-opacity=".32"/><stop offset="1" stop-color="#9cc27a" stop-opacity=".42"/></linearGradient><linearGradient id="silt" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset=".6" stop-color="#2b3a1f" stop-opacity=".18"/><stop offset="1" stop-color="#1c2614" stop-opacity=".45"/></linearGradient><linearGradient id="fade" x1="0" x2="1"><stop offset=".43" stop-color="#fff" stop-opacity="0"/><stop offset=".7" stop-color="#fff" stop-opacity="1"/></linearGradient><mask id="m"><rect width="360" height="30" fill="url(#fade)"/></mask><pattern id="grain" width="2" height="2" patternUnits="userSpaceOnUse"><rect width=".6" height=".6" fill="#fff" fill-opacity=".06"/></pattern></defs><g mask="url(#m)"><rect class="mk" width="360" height="30" fill="url(#bog)"/><rect width="360" height="30" fill="url(#silt)"/><rect width="360" height="30" fill="url(#grain)"/><path class="rp" style="animation-delay:-0s" d="M190 22 q6 -2 12 0 t12 0"/><path class="rp" style="animation-delay:-2.5s" d="M226 9 q6 -2 12 0 t12 0"/><path class="rp" style="animation-delay:-5s" d="M250 18 q6 -2 12 0 t12 0"/><path class="rp" style="animation-delay:-1.5s" d="M300 24 q6 -2 12 0 t12 0"/><path class="rp" style="animation-delay:-3.8s" d="M322 7 q6 -2 12 0 t12 0"/><circle class="b" cx="168" cy="32" r="1.6" style="animation-duration:6.5s;animation-delay:-0s"/><circle class="b" cx="182" cy="32" r="1.1" style="animation-duration:8s;animation-delay:-2.1s"/><circle class="b" cx="197" cy="32" r="2.0" style="animation-duration:7s;animation-delay:-4.2s"/><circle class="b" cx="210" cy="32" r="1.3" style="animation-duration:9s;animation-delay:-1.0s"/><circle class="b" cx="224" cy="32" r="1.7" style="animation-duration:7.5s;animation-delay:-3.3s"/><circle class="b" cx="238" cy="32" r="1.0" style="animation-duration:8.5s;animation-delay:-5.1s"/><circle class="b" cx="252" cy="32" r="1.4" style="animation-duration:6.8s;animation-delay:-2.6s"/><circle class="b" cx="176" cy="32" r="0.9" style="animation-duration:9.5s;animation-delay:-6.0s"/><circle class="b" cx="232" cy="32" r="0.8" style="animation-duration:10s;animation-delay:-0.5s"/></g></svg>`
 // The band when a usage limit is close: embers, sparks rising.
@@ -7828,6 +7830,10 @@ Saved to ${out}.md and .json` }
       // holds their place. The art is still: every click redraws the band.
       // notice: a line in the accent colour that says what is the person's to do, an arrow, and its buttons, in a row of
       // its own between the choices and Back / Next (so those stay where every step has them).
+      // A narrow band (a small window, or the app's zoom): the window step's sizes no longer fit in one row (about 97
+      // cells), so the steps take shorter words, stack their rows and move a notice's words up into the text.
+      const setupCols = typeof e.props.bodyColumns === 'number' ? e.props.bodyColumns : undefined
+      const narrow = setupCols !== undefined && setupCols < SETUP_NARROW_COLUMNS
       const band = (question: string, explain: unknown, choices: unknown[], controls: unknown[], look: 'brand' | 'done' = 'brand', stacked = false,
         notice?: { text: string; buttons: unknown[] }, choiceRows = 2) => {
         // The choices take their rows and a blank one; the notice shares the bottom row with Back and Next (in a row of
@@ -7843,6 +7849,25 @@ Saved to ${out}.md and .json` }
               {lines.map((l, i) => typeof l === 'string' ? <Text key={`setup-line-${i}`} dimColor wrap="wrap">{l}</Text> : l)}
             </Box>
           ), [...choices, ...(notice ? notice.buttons : []), ...controls, ...(look === 'done' ? [] : [<Button key="setup-close" plain role="dismiss" label="✕" onPress={() => closeSetup($)} />])])
+        // Narrow: a notice's words go up into the text (beside its buttons they were squeezed into a column one word wide);
+        // the row of Back and Next keeps the arrow and its buttons.
+        const noticeUp = !!notice && narrow
+        // The rows the text may take: the band's rows less the head, its gap, the question and the actions' layer. The
+        // text is clipped there, so a wrong guess cuts its last line instead of running under the choices.
+        const textRows = slotRows - 3 - (stacked ? actionsH : 2)
+        // Narrow: a dim line that would not fit goes (the lean's line on what effort is, the window step's how): estimated per
+        // line from its length, generously, since the font is proportional.
+        const rowsOf = (l: unknown) => {
+          const t = typeof l === 'string' ? l : l && typeof l === 'object' && 'accent' in l ? (l as { accent: string }).accent : ''
+          return t && setupCols ? Math.max(1, Math.ceil(t.length / (setupCols * 0.85))) : 1
+        }
+        const shownLines: unknown[] = noticeUp ? [...lines, { accent: notice!.text }] : [...lines]
+        while (look !== 'done' && narrow && setupCols && shownLines.reduce((n: number, l) => n + rowsOf(l), 0) > textRows) {
+          let drop = -1
+          shownLines.forEach((l, i) => { if (i > 0 && typeof l === 'string') drop = i })
+          if (drop < 0) break
+          shownLines.splice(drop, 1)
+        }
         // Desktop: the title as the settings write it (the logo, the name in bold, a dot, the place in italics, the step),
         // a blank row, the question in bold, what the choice does, a dim hint, then the choices and buttons. The buttons
         // get two rows of their own: in one row the app's button was cut at the band's bottom edge.
@@ -7866,20 +7891,25 @@ Saved to ${out}.md and .json` }
             </Box>
             <Box key="setup-gap" height={1} />
             <Text key="setup-question" bold wrap="wrap">{question}</Text>
-            {lines.map((l, i) => typeof l === 'string'
-              ? <Text key={`setup-line-${i}`} dimColor={i > 0} wrap="wrap">{l}</Text>
-              : <Box key={`setup-line-${i}`}>{l}</Box>)}
-            {/* The done step's Close sits in the row of its last line (that line is short), so the card ends there. */}
-            <Box key="setup-room" height={stacked ? actionsH : look === 'done' ? 1 : 2} />
+            <Box key="setup-text" flexDirection="column" flexShrink={0} {...(look === 'done' ? {} : { height: textRows, overflow: 'hidden' })}>
+              {shownLines.map((l, i) => typeof l === 'string'
+                ? <Text key={`setup-line-${i}`} dimColor={i > 0} wrap="wrap">{l}</Text>
+                : l && typeof l === 'object' && 'accent' in l
+                  ? <Text key="setup-notice-words" color={ACCENT} wrap="wrap">{(l as { accent: string }).accent}</Text>
+                  : <Box key={`setup-line-${i}`}>{l}</Box>)}
+            </Box>
+            {/* The done step's Close sits in the row of its last line where that line is short; narrow, it gets a row
+                of its own, so it never covers the words. */}
+            <Box key="setup-room" height={stacked ? actionsH : look === 'done' && !narrow ? 1 : 2} />
             {/* The choices and buttons: an absolute layer, drawn after the art, so they take clicks. A wide row of
                 choices (the lean's track) gets a row of its own, the buttons a row under it: side by side they ran out
                 of the band. */}
             {stacked ? (
               <Box key="setup-actions" position="absolute" bottom={0} left={1} right={1} height={actionsH} flexDirection="column" justifyContent="flex-end">
-                {choicesH ? <Box key="setup-choices" flexDirection="row" alignItems="flex-start" gap={2} height={choicesH}>{choices}</Box> : null}
+                {choicesH ? <Box key="setup-choices" flexDirection="row" alignItems="flex-end" gap={2} height={choicesH}>{choices}</Box> : null}
                 <Box key="setup-nav" flexDirection="row" gap={2} alignItems="center" height={2}>
                   {notice ? [
-                    <Box key="setup-notice-words" flexShrink={1} minWidth={0}><Text color={ACCENT} wrap="wrap">{notice.text}</Text></Box>,
+                    ...(noticeUp ? [] : [<Box key="setup-notice-words" flexShrink={1} minWidth={0}><Text color={ACCENT} wrap="wrap">{notice.text}</Text></Box>]),
                     <Box key="setup-notice-actions" flexShrink={0} flexDirection="row" alignItems="center" gap={2}>
                       <Text color={ACCENT} bold>→</Text>
                       {notice.buttons}
@@ -7989,6 +8019,7 @@ Saved to ${out}.md and .json` }
         const viaCommand = windowViaCommand() || settingsHookBlocked
         const explain = own || setupOwnOpen
           ? `Individual: type a size (100k to ${modelWindow > 0 ? windowLabel(Math.min(modelWindow, WINDOW_MAX)) : '1M'}, e.g. 250k) and press Enter.${own ? ` Picked: ${windowLabel(picked)}.` : ''}`
+          : picked === DEFAULT_WINDOW && narrow ? '300k (recommended): compacts at about 267k tokens. Long sessions use about half the tokens of 1M.'
           : picked === DEFAULT_WINDOW ? `300k (recommended): the chat compacts at about 267k tokens. Every message rereads the whole chat, so this saves the most: long sessions use about half the tokens of Claude Code's default (1M), about 30 % less across all chats.`
           : picked === 400_000 ? '400k: compacts later. Fewer compactions, but each message rereads more and costs a bit more.'
           : picked === null ? `Claude Code default: no size set, compacts near the full window (${full}). Fewest compactions, priciest messages.`
@@ -8051,8 +8082,10 @@ Saved to ${out}.md and .json` }
           ? <Button key="setup-next" plain dimColor label="Next" onPress={() => $.ui.toast(waitFor)} />
           : nextButton
         const sizeLabel = (w: number | null) => {
-          const tags = [...(w === null && modelWindow > 0 ? [windowLabel(modelWindow)] : []), ...(w === DEFAULT_WINDOW ? ['recommended'] : []), ...(chatSize !== undefined && w === chatSize ? ['this chat'] : [])]
-          const name = w === null ? 'Claude Code default' : windowLabel(w)
+          // Narrow: the short names; the text above says which is recommended and which this chat runs on.
+          const tags = narrow ? (w === null && modelWindow > 0 ? [windowLabel(modelWindow)] : [])
+            : [...(w === null && modelWindow > 0 ? [windowLabel(modelWindow)] : []), ...(w === DEFAULT_WINDOW ? ['recommended'] : []), ...(chatSize !== undefined && w === chatSize ? ['this chat'] : [])]
+          const name = w === null ? (narrow ? 'Default' : 'Claude Code default') : windowLabel(w)
           return tags.length ? `${name} (${tags.join(', ')})` : name
         }
         const sizes = choices.map(w => (
@@ -8082,7 +8115,7 @@ Saved to ${out}.md and .json` }
         )
         // Desktop: the three sizes and Individual in one row, Apply at its end; with this chat's own size as a fourth they
         // no longer fit side by side, and Individual gets a row under them. The terminal lists them all as buttons.
-        const oneRow = choices.length <= 3
+        const oneRow = choices.length <= 3 && !narrow
         // Desktop: Apply sits in the row of Back and Next, before Next. At the end of the sizes' row the band cut it off
         // where the window was narrow (the sizes and Individual keep their width), and Next only said to Apply.
         const rows = e.surface === 'terminal'
@@ -8101,7 +8134,7 @@ Saved to ${out}.md and .json` }
             ),
           ]
         const controls = e.surface !== 'terminal' && needApply ? [...nav(apply), forward] : nav(forward)
-        return band('When should a chat be compacted?', [explain, how], rows, controls, 'brand', true, notice, oneRow ? 1 : 2)
+        return band('When should a chat be compacted?', askNewChat ? [explain] : [explain, how], rows, controls, 'brand', true, notice, oneRow ? 1 : 2)
       }
       if (step === 'windowchat') {
         // Step 2b: the default changed in step 2, but this chat keeps its own size until it ends. Optional: the
@@ -8145,7 +8178,7 @@ Saved to ${out}.md and .json` }
           ...(['auto', 'dark', 'light'] as const).map(value => (
             <Button key={`setup-look-${value}`} plain label={`${mode === value ? '◉' : '○'} ${words[value]}`} onPress={() => pick('appearance', value)} />
           )),
-        ], nav(<Button key="setup-next" variant="primary" label="Finish" onPress={() => completeSetup($)} />))
+        ], nav(<Button key="setup-next" variant="primary" label="Finish" onPress={() => completeSetup($)} />), 'brand', true, undefined, 1)
       }
       // Done: everything is saved already (see completeSetup). The band sums up what was set, in green, with a check;
       // the steps that were the person's (a new chat, /autocompact) were offered on their own pages before.
@@ -8173,7 +8206,7 @@ Saved to ${out}.md and .json` }
         <Box key="setup-summary" flexDirection="column">
           {items.map((t, i) => <Text key={`setup-summary-${i}`} wrap="wrap">{`· ${t}`}</Text>)}
         </Box>,
-        `Changed your mind? Click ⚙ under the prompt to change any of it.${(await read($, paused)) ? ' On this model Smart pauses: an effort change would rewrite the prompt cache.' : ''}`,
+        `${narrow ? '⚙ under the prompt changes any of it.' : 'Changed your mind? Click ⚙ under the prompt to change any of it.'}${(await read($, paused)) ? ' On this model Smart pauses: an effort change would rewrite the prompt cache.' : ''}`,
       ], [], [
         <Button key="setup-done" variant="primary" autoFocus label="Close" onPress={() => goSetup($, null)} />,
       ], 'done')
