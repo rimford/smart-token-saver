@@ -8032,7 +8032,7 @@ Saved to ${out}.md and .json` }
             }} />,
           ],
         } : undefined
-        // Apply sits at the end of the sizes, so Back and Next stay where every step has them. Saved, it goes on at
+        // Apply: after the sizes in the terminal, beside Next on the desktop (see rows). Saved, it goes on at
         // once (to step 2b where this chat runs on another size); refused, it stays and shows the person's step.
         const apply = <Button key="setup-window-apply" variant="primary" label="Apply" onPress={async () => {
           setupApplied = picked
@@ -8083,6 +8083,8 @@ Saved to ${out}.md and .json` }
         // Desktop: the three sizes and Individual in one row, Apply at its end; with this chat's own size as a fourth they
         // no longer fit side by side, and Individual gets a row under them. The terminal lists them all as buttons.
         const oneRow = choices.length <= 3
+        // Desktop: Apply sits in the row of Back and Next, before Next. At the end of the sizes' row the band cut it off
+        // where the window was narrow (the sizes and Individual keep their width), and Next only said to Apply.
         const rows = e.surface === 'terminal'
           ? [...sizes, ownSlot, ...(needApply ? [apply] : [])]
           : [
@@ -8090,21 +8092,16 @@ Saved to ${out}.md and .json` }
               <Box key="setup-window-rows" flexDirection="row" alignItems="center" gap={2} flexGrow={1}>
                 {sizes}
                 {ownSlot}
-                <Box key="setup-window-apply-gap" flexGrow={1} />
-                {needApply ? apply : null}
               </Box>
             ) : (
               <Box key="setup-window-rows" flexDirection="column" flexGrow={1} gap={1}>
-                <Box key="setup-window-sizes" flexDirection="row" alignItems="center" gap={2}>
-                  {sizes}
-                  <Box key="setup-window-apply-gap" flexGrow={1} />
-                  {needApply ? apply : null}
-                </Box>
+                <Box key="setup-window-sizes" flexDirection="row" alignItems="center" gap={2}>{sizes}</Box>
                 <Box key="setup-window-own-row" flexDirection="row" alignItems="center">{ownSlot}</Box>
               </Box>
             ),
           ]
-        return band('When should a chat be compacted?', [explain, how], rows, nav(forward), 'brand', true, notice, oneRow ? 1 : 2)
+        const controls = e.surface !== 'terminal' && needApply ? [...nav(apply), forward] : nav(forward)
+        return band('When should a chat be compacted?', [explain, how], rows, controls, 'brand', true, notice, oneRow ? 1 : 2)
       }
       if (step === 'windowchat') {
         // Step 2b: the default changed in step 2, but this chat keeps its own size until it ends. Optional: the

@@ -5301,7 +5301,7 @@ describe('Lab, About and the guide', () => {
 
   test('the names and versions live in one place', () => {
     expect(PRODUCT_NAME).toBe('Smart Token Saver')
-    expect(OWN_VERSION).toBe('1.0.0')
+    expect(OWN_VERSION).toBe('1.0.1')
     expect(UPSTREAM_BASE).toMatch(VERSION_RE)
     expect(GUIDE_URL).toBe('https://rimford.github.io/smart-token-saver/guide/')
   })
@@ -5821,6 +5821,32 @@ describe('more room for this chat (R10)', () => {
     expect(await drawn(band)).toContain('New chats run on 300k')
     expect(await band.find({ key: 'setup-chat-paste' })).toBeUndefined()
     await band.press({ key: 'setup-done' })
+    await band.unmount()
+  })
+
+  test('setup window step on the desktop: Apply sits beside Back and Next, not at the end of the sizes, so a narrow band does not cut it off', { options: { layout: 'default' } } as never, async ($, on) => {
+    roomy(on, 1_000_000, 50_000, 'blocked', { setupDone: false })
+    await openChat($, on)
+    await tick()
+    const band = await $.ui.mount(DESK_BAND)
+    for (let i = 0; i < 6 && !(await band.find({ key: 'setup-window-400000' })); i++) await band.press({ key: 'setup-next' })
+    await band.press({ key: 'setup-window-400000' })
+    const tree = await band.drawn()
+    const byKey = (node: unknown, key: string): unknown => {
+      if (!node || typeof node !== 'object') return undefined
+      const n = node as Record<string, unknown>
+      if (n.key === key || ((n.props ?? {}) as Record<string, unknown>).key === key) return n
+      for (const value of Object.values(n)) {
+        const hit = Array.isArray(value) ? value.map(v => byKey(v, key)).find(Boolean) : byKey(value, key)
+        if (hit) return hit
+      }
+      return undefined
+    }
+    expect(byKey(byKey(tree, 'setup-nav'), 'setup-window-apply')).toBeDefined()
+    expect(byKey(byKey(tree, 'setup-window-rows'), 'setup-window-apply')).toBeUndefined()
+    const nav = JSON.stringify(byKey(tree, 'setup-nav'))
+    expect(nav.indexOf('setup-back')).toBeLessThan(nav.indexOf('setup-window-apply'))
+    expect(nav.indexOf('setup-window-apply')).toBeLessThan(nav.indexOf('setup-next'))
     await band.unmount()
   })
 

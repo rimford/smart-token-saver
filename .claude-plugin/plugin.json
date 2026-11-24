@@ -1,6 +1,6 @@
 {
   "name": "smarttokensaver",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Smart Token Saver: picks how hard Claude thinks per message, shows when a chat gets expensive, and compacts or hands off in one click. Smart Token Saver is based on effortless by HeyCubit (MIT).",
   "author": { "name": "rimford", "url": "https://github.com/rimford" },
   "homepage": "https://github.com/rimford/smart-token-saver",
