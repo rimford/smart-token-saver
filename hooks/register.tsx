@@ -7014,6 +7014,13 @@ Saved to ${out}.md and .json` }
       // Under this many cells the top bar inside a part drops the product name: Back, the name, the part's name, Guide
       // and the cross need about 78 (measured with tools/render-band: at 62 "Context size" ran into Guide).
       const headTight = e.surface !== 'terminal' && typeof e.props.bodyColumns === 'number' && e.props.bodyColumns < 80
+      // The overview scrolls only where its seven cards would take a third row, cut at the slot's foot: fewer than four
+      // at their least width (18, gaps of 1) beside each other, inside the panel's padding of 2 a side. Then it keeps
+      // two rows (4 + 3) as wide as they need. At the design width of an open card (100) it scrolled in a window that
+      // had room: the cards stretched and Context size was cut at the right.
+      const OVERVIEW_COLS = 4 * 18 + 3
+      const cardsCols = e.surface !== 'terminal' && typeof e.props.bodyColumns === 'number' && e.props.bodyColumns - 4 < OVERVIEW_COLS
+        ? OVERVIEW_COLS : 0
       // The app gives this slot maxRows rows and drops a taller tree whole, without a word. With gaps the panel is 12
       // rows (2 border, 2 header, 4 settings, 4 gaps); without, 7.
       const roomy = slotRows >= 12
@@ -7319,8 +7326,8 @@ Saved to ${out}.md and .json` }
             <Box key="settings-cards-room" flexDirection="column" flexGrow={term ? 0 : 1} justifyContent="center" paddingTop={term ? 0 : 0.75}>
             {/* A narrow window: the cards keep the width they were made for (two rows) and scroll sideways, as an open
                 card's rows do. Wrapped into a third row they were cut at the bottom, and the slot cannot scroll down. */}
-            <Box key="settings-cards-scroll" flexDirection="column" {...(wideCols ? { overflowX: 'scroll' } : {})}>
-            <Box key="settings-cards" flexDirection="row" flexWrap="wrap" columnGap={1} rowGap={term ? 0 : 1} {...(wideCols ? { width: wideCols, flexShrink: 0 } : {})}>
+            <Box key="settings-cards-scroll" flexDirection="column" {...(cardsCols ? { overflowX: 'scroll' } : {})}>
+            <Box key="settings-cards" flexDirection="row" flexWrap="wrap" columnGap={1} rowGap={term ? 0 : 1} {...(cardsCols ? { width: cardsCols, flexShrink: 0 } : {})}>
               <Box position="absolute" top={0} left={0} />
               {CARDS.map(c => (
                 <Box key={`card-${c.id}`} position="relative" flexDirection="column" flexGrow={1} width={0} minWidth={18}
@@ -7332,7 +7339,9 @@ Saved to ${out}.md and .json` }
                     {term ? (
                       <Button key={`settings-card-${c.id}`} plain label={`${c.title} ›`} onPress={openCard(c.id)} />
                     ) : (
-                      <Text color={DASH_TEXT} bold hover={{ color: '#ffffff' }}>{c.title}</Text>
+                      // One line, cut if need be: a title on two lines made its row taller and pushed the second row out
+                      // of the slot.
+                      <Text color={DASH_TEXT} bold wrap="truncate" hover={{ color: '#ffffff' }}>{c.title}</Text>
                     )}
                     {/* Maintainer tools' state at the right end of the Support title row; shown only, the card still opens Support. */}
                     {c.id === 'lab' && maint && !term ? <Box key="lab-power-push" flexGrow={1} /> : null}

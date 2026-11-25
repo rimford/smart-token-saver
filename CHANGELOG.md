@@ -7,7 +7,7 @@
   desktop it now sits beside Back and Next. In a narrow window the setup also uses shorter words, stacks its rows and
   keeps a blank row between the text and the choices.
 - **Settings in a narrow window.** The overview and an open card keep the width they were made for and scroll sideways
-  (the overview's cards stay in two rows instead of a third one cut at the bottom); Back, Guide and
+  (the overview only where a third row of cards would be cut at the bottom; its titles stay on one line); Back, Guide and
   ✕ stay where they are. In a very narrow window the top bar of a part leaves out the product name, so the part's
   name no longer runs into Guide.
 - **Terminal: the bar above or below the prompt.** Settings → Customize → *Terminal*, in the app and in the terminal. *Below prompt* draws no bar at

@@ -5983,11 +5983,16 @@ describe('more room for this chat (R10)', () => {
     }
     const propsOf = (n: Record<string, unknown> | undefined) => ((n?.props ?? n ?? {}) as Record<string, unknown>)
     await $.command.run({ command: 'smarttokensaver', args: 'settings' } as never)
-    const panel = await $.ui.mount(narrow)
-    // The overview too: its cards keep two rows at the design width and scroll sideways (a third row was cut).
-    let tree = await panel.drawn()
+    // The overview in a very narrow band: its cards keep two rows (4 + 3) and scroll sideways (a third row was cut).
+    const tight = await $.ui.mount({ plugin: 'smarttokensaver', surface: 'desktop', component: 'AbovePrompt', props: { ...props, bodyColumns: 62 } } as never)
+    let tree = await tight.drawn()
     expect(propsOf(byKey(tree, 'settings-cards-scroll')).overflowX).toBe('scroll')
-    expect(propsOf(byKey(tree, 'settings-cards')).width).toBe(100)
+    expect(propsOf(byKey(tree, 'settings-cards')).width).toBe(75)
+    await tight.unmount()
+    const panel = await $.ui.mount(narrow)
+    // At 82 four cards still fit beside each other: the overview does not scroll.
+    tree = await panel.drawn()
+    expect(propsOf(byKey(tree, 'settings-cards-scroll')).overflowX).toBeUndefined()
     await panel.press({ key: 'settings-card-effort' })
     tree = await panel.drawn()
     expect(propsOf(byKey(tree, 'settings-rows-scroll')).overflowX).toBe('scroll')
@@ -6001,6 +6006,14 @@ describe('more room for this chat (R10)', () => {
     expect(propsOf(byKey(tree, 'settings-rows-scroll')).overflowX).toBeUndefined()
     expect(propsOf(byKey(tree, 'settings-rows')).width).toBeUndefined()
     await wide.unmount()
+    // Just under the design width, where four cards still fit beside each other: the overview does not scroll (at the
+    // design width it stretched them and cut the last one).
+    const roomyNarrow = await $.ui.mount({ plugin: 'smarttokensaver', surface: 'desktop', component: 'AbovePrompt', props: { ...props, bodyColumns: 99 } } as never)
+    await roomyNarrow.press({ key: 'settings-back' })
+    tree = await roomyNarrow.drawn()
+    expect(propsOf(byKey(tree, 'settings-cards-scroll')).overflowX).toBeUndefined()
+    expect(propsOf(byKey(tree, 'settings-cards')).width).toBeUndefined()
+    await roomyNarrow.unmount()
   })
 
   test('setup window step: the size this chat runs on is a choice of its own, in its place; a size new chats get needs no Apply, and Apply goes on to step 2b at once', { options: { layout: 'default' } } as never, async ($, on) => {
