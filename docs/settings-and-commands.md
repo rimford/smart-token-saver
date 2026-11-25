@@ -33,6 +33,7 @@ Overview line: what shows and how it looks, for example *Bar · automatic*.
 | Row | What it does | Option |
 | --- | --- | --- |
 | Show | *Bar*: effort, context, cache and buttons in one bar above the prompt. *Buttons only*: the small row under the prompt. | `layout` |
+| Terminal | Terminal only. *Above prompt* (default): the bar above the prompt. *Below prompt*: no bar at rest, a dim status line under the prompt (effort, cache, context); alerts, the setup and Settings still open above. | `terminalPlace` |
 | Panels | *Automatic* follows the app. *Always dark* and *Always light* colour the plugin's panels only; the app keeps its own mode. In the terminal they paint the panels dark or light as well. | `appearance` |
 | In the bar | *Cache countdown* (on by default). *Why this effort* (off by default): beside Smart the bar names who picked the effort, *(Haiku 5.5)* or *(You)*, with the reason on hover. | `hide` |
 | Remove | *Uninstall* (press twice) removes the plugin. | |

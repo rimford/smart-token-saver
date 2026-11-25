@@ -1,10 +1,16 @@
 # Changelog
 
-## 1.0.1 (2026-11-24)
+## 1.0.1 (2026-11-25)
 
 - **Setup works in a narrow window.** In step 2 (*When should a chat be compacted?*) the Apply button sat at the end of
   the row of sizes and was cut off where the window was narrow, so only the size in use could be picked. On the
-  desktop it now sits beside Back and Next.
+  desktop it now sits beside Back and Next. In a narrow window the setup also uses shorter words, stacks its rows and
+  keeps a blank row between the text and the choices.
+- **Settings in a narrow window.** An open card keeps the width it was made for and scrolls sideways; Back, Guide and
+  ✕ stay where they are. A click redraws the panel and brings it back to the left edge.
+- **Terminal: the bar above or below the prompt.** Settings → Customize → *Terminal*. *Below prompt* draws no bar at
+  rest and adds a dim status line (effort, cache, context) under the prompt. Alerts, the setup, Settings and a
+  Handoff advice still show above. `/smarttokensaver settings` opens Settings, `/smarttokensaver auto` switches Smart.
 - **A typed /compact clears the swamp alert at once,** also where another plugin skips this plugin's compact hook.
 
 ## 1.0.0 (2026-11-23)

@@ -68,6 +68,8 @@ load; most often Claude Code is too old.
   (or **Skip until reset** for the 5-hour limit) not before the reset.
 - **Buttons only.** Settings → Customize → Show can swap the bar for a small row under the prompt: ☰ brings the bar
   back, ⏻ switches Smart, the Reduce button opens Compact session (and Handoff), ⚙ opens Settings.
+- **Terminal: above or below the prompt.** Settings → Customize → Terminal → *Below prompt* takes the bar away at rest
+  and puts a dim status line (effort, cache, context) under the prompt. Alerts and Settings still open above.
 - **Alerts that fit the window.** The "getting swamped" alert comes close to compaction in a small window and well
   before it in a big one (227k at 300k, 507k at 1M).
 
