@@ -321,6 +321,8 @@ const SETUP_ART_W = 2200
 const SETUP_ART_H = 400
 /** Under this many cells across the band the setup takes its narrow layout (the window step's sizes need about 88: at 80 Individual was cut). */
 const SETUP_NARROW_COLUMNS = 92
+/** The width the settings panel is laid out for; a narrower band scrolls it sideways (at 82 cells its cards were cut). */
+const SETTINGS_DESIGN_COLUMNS = 100
 // The band when the context is swamped: murky green, bubbles rising, slow ripples.
 const SWAMP_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="440" height="64" viewBox="0 0 360 30" preserveAspectRatio="xMaxYMid slice"><style>:root{color-scheme:light dark}html,body{margin:0}svg{background:transparent;display:block}.b{fill:none;stroke:#cfe8b8;stroke-width:.5;opacity:0;animation-name:rise;animation-timing-function:ease-in;animation-iteration-count:infinite}@keyframes rise{0%{opacity:0;transform:translate(0,0)}15%{opacity:.7}80%{opacity:.5}100%{opacity:0;transform:translate(3px,-30px)}}.rp{fill:none;stroke:#a7c98f;stroke-width:.4;stroke-linecap:round;opacity:.25;animation:drift 7s ease-in-out infinite}@keyframes drift{0%,100%{transform:translate(0,0);opacity:.15}50%{transform:translate(4px,0);opacity:.4}}.mk{animation:mk 8s ease-in-out infinite}@keyframes mk{0%,100%{opacity:.85}50%{opacity:1}}</style><defs><linearGradient id="bog" x1="0" x2="1"><stop offset=".43" stop-color="#4f7a3a" stop-opacity="0"/><stop offset=".62" stop-color="#4f7a3a" stop-opacity=".16"/><stop offset=".85" stop-color="#6f9a4f" stop-opacity=".32"/><stop offset="1" stop-color="#9cc27a" stop-opacity=".42"/></linearGradient><linearGradient id="silt" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset=".6" stop-color="#2b3a1f" stop-opacity=".18"/><stop offset="1" stop-color="#1c2614" stop-opacity=".45"/></linearGradient><linearGradient id="fade" x1="0" x2="1"><stop offset=".43" stop-color="#fff" stop-opacity="0"/><stop offset=".7" stop-color="#fff" stop-opacity="1"/></linearGradient><mask id="m"><rect width="360" height="30" fill="url(#fade)"/></mask><pattern id="grain" width="2" height="2" patternUnits="userSpaceOnUse"><rect width=".6" height=".6" fill="#fff" fill-opacity=".06"/></pattern></defs><g mask="url(#m)"><rect class="mk" width="360" height="30" fill="url(#bog)"/><rect width="360" height="30" fill="url(#silt)"/><rect width="360" height="30" fill="url(#grain)"/><path class="rp" style="animation-delay:-0s" d="M190 22 q6 -2 12 0 t12 0"/><path class="rp" style="animation-delay:-2.5s" d="M226 9 q6 -2 12 0 t12 0"/><path class="rp" style="animation-delay:-5s" d="M250 18 q6 -2 12 0 t12 0"/><path class="rp" style="animation-delay:-1.5s" d="M300 24 q6 -2 12 0 t12 0"/><path class="rp" style="animation-delay:-3.8s" d="M322 7 q6 -2 12 0 t12 0"/><circle class="b" cx="168" cy="32" r="1.6" style="animation-duration:6.5s;animation-delay:-0s"/><circle class="b" cx="182" cy="32" r="1.1" style="animation-duration:8s;animation-delay:-2.1s"/><circle class="b" cx="197" cy="32" r="2.0" style="animation-duration:7s;animation-delay:-4.2s"/><circle class="b" cx="210" cy="32" r="1.3" style="animation-duration:9s;animation-delay:-1.0s"/><circle class="b" cx="224" cy="32" r="1.7" style="animation-duration:7.5s;animation-delay:-3.3s"/><circle class="b" cx="238" cy="32" r="1.0" style="animation-duration:8.5s;animation-delay:-5.1s"/><circle class="b" cx="252" cy="32" r="1.4" style="animation-duration:6.8s;animation-delay:-2.6s"/><circle class="b" cx="176" cy="32" r="0.9" style="animation-duration:9.5s;animation-delay:-6.0s"/><circle class="b" cx="232" cy="32" r="0.8" style="animation-duration:10s;animation-delay:-0.5s"/></g></svg>`
 // The band when a usage limit is close: embers, sparks rising.
@@ -6960,6 +6962,11 @@ Saved to ${out}.md and .json` }
     const slotRows = typeof e.props.maxRows === 'number' && e.props.maxRows > 0 ? e.props.maxRows : 12
     // The settings panel: a branded header bar, then one compact row per setting, a dim hint at the end of each row.
     if (panelOpen) {
+      // An open card's rows are laid out for SETTINGS_DESIGN_COLUMNS. In a narrower band they keep that width and
+      // scroll sideways (the slot itself never does: it cut them at the right edge); the top bar with Back, Guide and ✕
+      // stays where it is.
+      const wideCols = e.surface !== 'terminal' && typeof e.props.bodyColumns === 'number' && e.props.bodyColumns < SETTINGS_DESIGN_COLUMNS
+        ? SETTINGS_DESIGN_COLUMNS : 0
       // The app gives this slot maxRows rows and drops a taller tree whole, without a word. With gaps the panel is 12
       // rows (2 border, 2 header, 4 settings, 4 gaps); without, 7.
       const roomy = slotRows >= 12
@@ -7317,7 +7324,11 @@ Saved to ${out}.md and .json` }
               {card === 'context' || card === 'lab' ? null : <Text dimColor wrap={term ? 'truncate' : 'wrap'}>{CARDS.find(c => c.id === card)?.about}</Text>}
               {card === 'context' || card === 'lab' || term ? null : <Box key="settings-card-gap" height={CARD_ROW_GAP} flexShrink={0} />}
               {/* Half a row between rows: lines that touch read as one block, and a whole row each made the cards scroll. */}
-              <Box flexDirection="column" alignItems="flex-start" gap={term ? 0 : CARD_ROW_GAP}>
+              {/* A narrow window scrolls the rows sideways (they keep the width they were made for). A scroll box also cuts
+                  what leaves it at the top or bottom, so while a fixed mode's own list is open (it may open upwards,
+                  over the rows above) the box does not scroll: the dropdowns sit near the left edge, in view. */}
+              <Box key="settings-rows-scroll" flexDirection="column" {...(wideCols && !openChoice ? { overflowX: 'scroll' } : {})}>
+              <Box key="settings-rows" flexDirection="column" alignItems="flex-start" gap={term ? 0 : CARD_ROW_GAP} {...(wideCols ? { width: wideCols, flexShrink: 0 } : {})}>
                 {card === 'effort' ? [
             ...(term ? [gridRow('effort-lean', 'Lean', [
               <Text key="cheap" dimColor>Cheaper</Text>,
@@ -7605,6 +7616,7 @@ Saved to ${out}.md and .json` }
               gridRow('show-uninstall', 'Remove', [uninstallButton($, themedEls($.ui.resolve(e), e.surface))]),
             ]),
 ]}
+              </Box>
               </Box>
             </Box>
           )}

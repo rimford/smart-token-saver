@@ -5850,6 +5850,40 @@ describe('more room for this chat (R10)', () => {
     await band.unmount()
   })
 
+  test('settings card in a narrow desktop band: its rows keep the width they were made for and scroll sideways; the top bar stays', async ($, on) => {
+    roomy(on, 1_000_000, 50_000, 'blocked')
+    await openChat($, on)
+    await tick()
+    const props = (BAND as { props: Record<string, unknown> }).props
+    const narrow = { plugin: 'smarttokensaver', surface: 'desktop', component: 'AbovePrompt', props: { ...props, bodyColumns: 82 } } as never
+    const byKey = (node: unknown, key: string): Record<string, unknown> | undefined => {
+      if (!node || typeof node !== 'object') return undefined
+      const n = node as Record<string, unknown>
+      if (n.key === key || ((n.props ?? {}) as Record<string, unknown>).key === key) return n
+      for (const value of Object.values(n)) {
+        const hit = Array.isArray(value) ? value.map(v => byKey(v, key)).find(Boolean) : byKey(value, key)
+        if (hit) return hit
+      }
+      return undefined
+    }
+    const propsOf = (n: Record<string, unknown> | undefined) => ((n?.props ?? n ?? {}) as Record<string, unknown>)
+    await $.command.run({ command: 'smarttokensaver', args: 'settings' } as never)
+    const panel = await $.ui.mount(narrow)
+    await panel.press({ key: 'settings-card-effort' })
+    let tree = await panel.drawn()
+    expect(propsOf(byKey(tree, 'settings-rows-scroll')).overflowX).toBe('scroll')
+    expect(propsOf(byKey(tree, 'settings-rows')).width).toBe(100)
+    expect(byKey(byKey(tree, 'settings-rows-scroll'), 'settings-back')).toBeUndefined()
+    await panel.unmount()
+    // A band as wide as the design: nothing scrolls.
+    const wide = await $.ui.mount(DESK_BAND)
+    tree = await wide.drawn()
+    expect(byKey(tree, 'settings-rows-scroll')).toBeDefined()
+    expect(propsOf(byKey(tree, 'settings-rows-scroll')).overflowX).toBeUndefined()
+    expect(propsOf(byKey(tree, 'settings-rows')).width).toBeUndefined()
+    await wide.unmount()
+  })
+
   test('setup window step: the size this chat runs on is a choice of its own, in its place; a size new chats get needs no Apply, and Apply goes on to step 2b at once', { options: { layout: 'default' } } as never, async ($, on) => {
     const w = roomy(on, 1_000_000, 50_000, 'blocked', { setupDone: false, settingsHookBlocked: true })
     await openChat($, on)
