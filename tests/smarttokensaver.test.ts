@@ -3092,6 +3092,7 @@ describe('terminal bands', () => {
   test('Terminal, Below prompt: no bar at rest, a status line under the prompt; alerts and Settings still open above', { options: { layout: 'default', terminalPlace: 'bottom' } } as never, async ($, on) => {
     engine(on)
     hintLine(on)
+    on('session.usage', () => ({ value: { context: { tokens: 90_000, window: 1_000_000, percent: 9 } } }) as never)
     mock.clock(on)
     await start($, on)
     const guide = await $.ui.mount(at(120))
@@ -3104,6 +3105,8 @@ describe('terminal bands', () => {
     const hint = await $.ui.mount(HINT)
     const line = await drawn(hint)
     expect(line).toContain('✦')
+    // The context comes before the cache: the engine cuts the tail at the row's end.
+    expect(line).toMatch(/✦ [^·"]+ · \d+% context/)
     expect(line).toContain('? for shortcuts')
     await hint.unmount()
     // An alert still shows above the prompt.
@@ -6031,6 +6034,8 @@ describe('more room for this chat (R10)', () => {
     const props = (BAND as { props: Record<string, unknown> }).props
     const band = await $.ui.mount({ plugin: 'smarttokensaver', surface: 'desktop', component: 'AbovePrompt', props: { ...props, bodyColumns: 62 } } as never)
     for (let i = 0; i < 6 && !(await band.find({ key: 'setup-window-400000' })); i++) await band.press({ key: 'setup-next' })
+    // The size this chat runs on keeps its mark, short labels or not: "pick the one in use" needs it.
+    expect(await drawn(band)).toContain('this chat')
     await band.press({ key: 'setup-window-400000' })
     await band.press({ key: 'setup-window-apply' })
     const byKey = (node: unknown, key: string): unknown => {

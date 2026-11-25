@@ -5185,18 +5185,22 @@ async function bottomStatus($: EngineInterface): Promise<string> {
   const v = await snap($)
   const advice = (await read($, handoffAdvice)) ?? null
   const cacheShown = config.hide.includes('timer') || (v.cacheNow !== null && v.cacheNow <= 0) ? null : v.cacheNow
-  const { head } = dashboardLines({
+  const { what } = dashboardLines({
     modelName: modelDisplayName(sessionModelId) ?? MODELS.find(m => m.key === v.modelNow)?.label,
     auto: v.auto,
     paused: Boolean(v.pausedNow),
     judging: Boolean(v.judging),
     effort: effortOf(v, v.modelNow ?? (await sessionModel($))),
-    cacheNow: cacheShown,
-    contextPercent: lastContext && lastContext.window && limits().trigger !== null ? lastContext.percent : null,
+    cacheNow: null,
+    contextPercent: null,
     reason: '',
     last: null,
   })
-  return advice ? `Handoff would suit · ${head}` : head
+  // The engine cuts the tail where the row ends, so what matters most comes first: Handoff advice, the effort, the
+  // context, and the cache last.
+  const context = lastContext && lastContext.window && limits().trigger !== null ? `${Math.round(lastContext.percent)}% context` : null
+  const cache = cacheShown === null ? null : `cache ${cacheLabel(cacheShown)}`
+  return [advice ? 'Handoff would suit' : null, `✦ ${what}`, context, cache].filter(Boolean).join(' · ')
 }
 
 /** The dashboard: what Smart Token Saver is doing, and Auto, Handoff and settings. The slot above the prompt at rest. */
@@ -8144,8 +8148,8 @@ Saved to ${out}.md and .json` }
           ? <Button key="setup-next" plain dimColor label="Next" onPress={() => $.ui.toast(waitFor)} />
           : nextButton
         const sizeLabel = (w: number | null) => {
-          // Narrow: the short names; the text above says which is recommended and which this chat runs on.
-          const tags = narrow ? (w === null && modelWindow > 0 ? [windowLabel(modelWindow)] : [])
+          // Narrow: the short names, but the size this chat runs on keeps its mark: "pick the one in use" needs it.
+          const tags = narrow ? [...(w === null && modelWindow > 0 ? [windowLabel(modelWindow)] : []), ...(chatSize !== undefined && w === chatSize ? ['this chat'] : [])]
             : [...(w === null && modelWindow > 0 ? [windowLabel(modelWindow)] : []), ...(w === DEFAULT_WINDOW ? ['recommended'] : []), ...(chatSize !== undefined && w === chatSize ? ['this chat'] : [])]
           const name = w === null ? (narrow ? 'Default' : 'Claude Code default') : windowLabel(w)
           return tags.length ? `${name} (${tags.join(', ')})` : name
