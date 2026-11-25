@@ -7011,9 +7011,6 @@ Saved to ${out}.md and .json` }
       // stays where it is.
       const wideCols = e.surface !== 'terminal' && typeof e.props.bodyColumns === 'number' && e.props.bodyColumns < SETTINGS_DESIGN_COLUMNS
         ? SETTINGS_DESIGN_COLUMNS : 0
-      // Under this many cells the top bar inside a part drops the product name: Back, the name, the part's name, Guide
-      // and the cross need about 78 (measured with tools/render-band: at 62 "Context size" ran into Guide).
-      const headTight = e.surface !== 'terminal' && typeof e.props.bodyColumns === 'number' && e.props.bodyColumns < 80
       // The overview scrolls only where its seven cards would take a third row, cut at the slot's foot: fewer than four
       // at their least width (18, gaps of 1) beside each other, inside the panel's padding of 2 a side. Then it keeps
       // two rows (4 + 3) as wide as they need. At the design width of an open card (100) it scrolled in a window that
@@ -7051,6 +7048,19 @@ Saved to ${out}.md and .json` }
       // The panel shows the draft over the saved settings; every control writes to the draft only.
       const draft = await read($, settingsDraft)
       const card = await read($, settingsCard)
+      // The top bar in a narrow band: what does not fit goes, in this order, so nothing runs into anything: the product
+      // name, then the part's name (with the mark), then Guide. ← Settings and ✕ always stay. Cells measured with
+      // tools/render-band (8.4 px a cell): inset 2 a side, ← Settings 11, the mark and its gaps 3, Guide 10.4 with the
+      // Saved slot (8) and gaps (2 + 2) before it, ✕ 3.7; bold text about 0.9 of a cell a letter. The overview has no
+      // ← Settings: its "Settings" title stays with the mark, only the name and Guide go.
+      const headCols = e.surface !== 'terminal' && typeof e.props.bodyColumns === 'number' ? e.props.bodyColumns : Infinity
+      const headPartLen = Math.ceil(0.9 * (card === null ? 'Settings' : CARDS.find(c => c.id === card)?.title ?? '').length)
+      const HEAD_RIGHT = 29
+      const HEAD_LEFT = card === null ? 2 : 13
+      const HEAD_NAME = 18
+      const headGuide = headCols >= HEAD_LEFT + (card === null ? 3 + headPartLen : 0) + 2 + HEAD_RIGHT
+      const headPart = card === null || headCols >= HEAD_LEFT + 3 + headPartLen + 2 + HEAD_RIGHT
+      const headName = headCols >= HEAD_LEFT + 3 + HEAD_NAME + headPartLen + 2 + HEAD_RIGHT
       const openCard = (to: SettingsCard | null) => async () => {
         await update($, settingsCard, () => to)
         $.ui.invalidate('ui.render')
@@ -7287,30 +7297,33 @@ Saved to ${out}.md and .json` }
                 the overview, the part's name inside one, after the way back). */}
             {card === null ? (
               <Box key="settings-trail" flexDirection="row" alignItems="center" gap={1}>
-                <Text color={DASH_TEXT} bold>{PRODUCT_NAME}</Text>
-                <Text color={DASH_DIM}>·</Text>
+                {headName ? <Text color={DASH_TEXT} bold>{PRODUCT_NAME}</Text> : null}
+                {headName ? <Text color={DASH_DIM}>·</Text> : null}
                 <Text color={DASH_TEXT} italic>Settings</Text>
               </Box>
             ) : (
               <Box key="settings-trail" flexDirection="row" alignItems="center" gap={1}>
                 <Button key="settings-back" variant="secondary" label="← Settings" onPress={openCard(null)} />
-                {!term && Svg ? <Svg key="settings-mark" source={markLogoSvg(BRAND_ORANGE, 'on')} alt={PRODUCT_NAME} width={14} height={14} /> : null}
-                {/* A narrow window leaves the name out (the mark says it): with it, the part's name ran into Guide. */}
-                {headTight ? null : <Text color={DASH_TEXT} bold>{PRODUCT_NAME}</Text>}
-                {headTight ? null : <Text color={DASH_DIM}>·</Text>}
-                <Text color={DASH_TEXT} italic>{CARDS.find(c => c.id === card)?.title}</Text>
+                {!term && Svg && headPart ? <Svg key="settings-mark" source={markLogoSvg(BRAND_ORANGE, 'on')} alt={PRODUCT_NAME} width={14} height={14} /> : null}
+                {/* A narrow window leaves the name out (the mark says it), then the part's name with the mark: with
+                    them, the part's name ran into Guide. */}
+                {headName ? <Text color={DASH_TEXT} bold>{PRODUCT_NAME}</Text> : null}
+                {headName ? <Text color={DASH_DIM}>·</Text> : null}
+                {headPart ? <Text color={DASH_TEXT} italic>{CARDS.find(c => c.id === card)?.title}</Text> : null}
               </Box>
             )}
           </Box>,
           <Box key="settings-actions" {...(term ? { flexShrink: 1, flexWrap: 'wrap', columnGap: 2 } : { position: 'absolute', top: 0, right: 2, height: 2.5, gap: 2 })} flexDirection="row" alignItems="center">
             {/* A terminal without link support prints the whole address after the label, so there it copies instead. */}
             {/* Changes save themselves; this says so for a moment after each one, where a Save button would be. */}
-            <Box key="settings-saved-slot" width={8} flexShrink={0} justifyContent="flex-end">
-              {savedShows ? <Text key="settings-saved" color={LAB_ON_COLOR} bold>✓ Saved</Text> : null}
-            </Box>
+            {headGuide || savedShows ? (
+              <Box key="settings-saved-slot" width={8} flexShrink={0} justifyContent="flex-end">
+                {savedShows ? <Text key="settings-saved" color={LAB_ON_COLOR} bold>✓ Saved</Text> : null}
+              </Box>
+            ) : null}
             {/* The guide: a book and the word, one button beside the cross, in every part; inside a part it opens at that
                 part's section. The terminal copies the link. */}
-            {guideButton('settings-guide', card ? `${GUIDE_URL}#${GUIDE_ANCHORS[card]}` : GUIDE_URL)}
+            {headGuide ? guideButton('settings-guide', card ? `${GUIDE_URL}#${GUIDE_ANCHORS[card]}` : GUIDE_URL) : null}
             <Button key="settings-close" plain label="✕" onPress={close} />
           </Box>,
           ])}
@@ -7384,13 +7397,19 @@ Saved to ${out}.md and .json` }
                   the slot whole, also with its command. */}
               {/* Support has none: its parts' names (This plugin, Maintainer) say it, and the card needs the rows. Nor has
                   Customize: with its Terminal row, Uninstall was cut at the bottom. */}
-              {card === 'context' || card === 'lab' || card === 'show' ? null : <Text dimColor wrap={term ? 'truncate' : 'wrap'}>{CARDS.find(c => c.id === card)?.about}</Text>}
-              {card === 'context' || card === 'lab' || card === 'show' || term ? null : <Box key="settings-card-gap" height={CARD_ROW_GAP} flexShrink={0} />}
               {/* Half a row between rows: lines that touch read as one block, and a whole row each made the cards scroll. */}
               {/* A narrow window scrolls the rows sideways (they keep the width they were made for). A scroll box also cuts
                   what leaves it at the top or bottom, so while a fixed mode's own list is open (it may open upwards,
                   over the rows above) the box does not scroll: the dropdowns sit near the left edge, in view. */}
               <Box key="settings-rows-scroll" flexDirection="column" {...(wideCols && !openChoice ? { overflowX: 'scroll' } : {})}>
+              {/* The line on what the part does scrolls with the rows, at their width: wrapped in a narrow window it took
+                  two or three lines and pushed the rows out at the bottom. */}
+              {card === 'context' || card === 'lab' || card === 'show' ? null : (
+                <Box key="settings-about" flexDirection="column" flexShrink={0} {...(wideCols ? { width: wideCols } : {})}>
+                  <Text dimColor wrap={term ? 'truncate' : 'wrap'}>{CARDS.find(c => c.id === card)?.about}</Text>
+                  {term ? null : <Box key="settings-card-gap" height={CARD_ROW_GAP} flexShrink={0} />}
+                </Box>
+              )}
               <Box key="settings-rows" flexDirection="column" alignItems="flex-start" gap={term ? 0 : CARD_ROW_GAP} {...(wideCols ? { width: wideCols, flexShrink: 0 } : {})}>
                 {card === 'effort' ? [
             ...(term ? [gridRow('effort-lean', 'Lean', [

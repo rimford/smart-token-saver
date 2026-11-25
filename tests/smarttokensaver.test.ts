@@ -6014,6 +6014,21 @@ describe('more room for this chat (R10)', () => {
     expect(propsOf(byKey(tree, 'settings-cards-scroll')).overflowX).toBeUndefined()
     expect(propsOf(byKey(tree, 'settings-cards')).width).toBeUndefined()
     await roomyNarrow.unmount()
+    // The top bar inside a part: the name goes first, then the part's name, then Guide; ← Settings and ✕ stay.
+    const head = async (cols: number) => {
+      const p = await $.ui.mount({ plugin: 'smarttokensaver', surface: 'desktop', component: 'AbovePrompt', props: { ...props, bodyColumns: cols } } as never)
+      const text = JSON.stringify(await p.drawn())
+      const out = { name: text.includes('"children":["Smart Token Saver"]'), part: text.includes('"children":["Effort"]'), guide: !!(await p.find({ key: 'settings-guide' })), back: !!(await p.find({ key: 'settings-back' })), close: !!(await p.find({ key: 'settings-close' })) }
+      await p.unmount()
+      return out
+    }
+    const opened = await $.ui.mount(DESK_BAND)
+    await opened.press({ key: 'settings-card-effort' })
+    await opened.unmount()
+    expect(await head(89)).toEqual({ name: true, part: true, guide: true, back: true, close: true })
+    expect(await head(60)).toEqual({ name: false, part: true, guide: true, back: true, close: true })
+    expect(await head(50)).toEqual({ name: false, part: false, guide: true, back: true, close: true })
+    expect(await head(40)).toEqual({ name: false, part: false, guide: false, back: true, close: true })
   })
 
   test('setup window step: the size this chat runs on is a choice of its own, in its place; a size new chats get needs no Apply, and Apply goes on to step 2b at once', { options: { layout: 'default' } } as never, async ($, on) => {
