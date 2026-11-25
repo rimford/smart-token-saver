@@ -7,7 +7,8 @@
   desktop it now sits beside Back and Next. In a narrow window the setup also uses shorter words, stacks its rows and
   keeps a blank row between the text and the choices.
 - **Settings in a narrow window.** An open card keeps the width it was made for and scrolls sideways; Back, Guide and
-  ✕ stay where they are. A click redraws the panel and brings it back to the left edge.
+  ✕ stay where they are. In a very narrow window the top bar of a part leaves out the product name, so the part's
+  name no longer runs into Guide.
 - **Terminal: the bar above or below the prompt.** Settings → Customize → *Terminal*. *Below prompt* draws no bar at
   rest and adds a dim status line (effort, cache, context) under the prompt. Alerts, the setup, Settings and a
   Handoff advice still show above. `/smarttokensaver settings` opens Settings, `/smarttokensaver auto` switches Smart.

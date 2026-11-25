@@ -6023,6 +6023,32 @@ describe('more room for this chat (R10)', () => {
     await band.unmount()
   })
 
+  test('narrow setup where plugins are kept out of the settings file: the notice leads the text, so the step it asks for is never cut', { options: { layout: 'default' } } as never, async ($, on) => {
+    const w = roomy(on, 1_000_000, 50_000, 'blocked', { setupDone: false, settingsHookBlocked: true })
+    w.engineState.refuse = true
+    await openChat($, on)
+    await tick()
+    const props = (BAND as { props: Record<string, unknown> }).props
+    const band = await $.ui.mount({ plugin: 'smarttokensaver', surface: 'desktop', component: 'AbovePrompt', props: { ...props, bodyColumns: 62 } } as never)
+    for (let i = 0; i < 6 && !(await band.find({ key: 'setup-window-400000' })); i++) await band.press({ key: 'setup-next' })
+    await band.press({ key: 'setup-window-400000' })
+    await band.press({ key: 'setup-window-apply' })
+    const byKey = (node: unknown, key: string): unknown => {
+      if (!node || typeof node !== 'object') return undefined
+      const n = node as Record<string, unknown>
+      if (n.key === key || ((n.props ?? {}) as Record<string, unknown>).key === key) return n
+      for (const value of Object.values(n)) {
+        const hit = Array.isArray(value) ? value.map(v => byKey(v, key)).find(Boolean) : byKey(value, key)
+        if (hit) return hit
+      }
+      return undefined
+    }
+    const box = byKey(await band.drawn(), 'setup-text') as { children: { children: string[] }[] }
+    // The notice is the first thing in the text box (maxRows 10 leaves it two rows); the size's explanation gave way.
+    expect(box.children[0].children[0]).toContain('A security rule keeps plugins out')
+    await band.unmount()
+  })
+
   test('setup where Claude Code keeps the settings file from plugins: Apply, then a new chat for new chats (Next waits for it), step 2b for this chat, and a summary', { options: { layout: 'default' } } as never, async ($, on) => {
     const w = roomy(on, 1_000_000, 50_000, 'blocked', { setupDone: false, settingsHookBlocked: true })
     w.engineState.refuse = true

@@ -7007,6 +7007,9 @@ Saved to ${out}.md and .json` }
       // stays where it is.
       const wideCols = e.surface !== 'terminal' && typeof e.props.bodyColumns === 'number' && e.props.bodyColumns < SETTINGS_DESIGN_COLUMNS
         ? SETTINGS_DESIGN_COLUMNS : 0
+      // Under this many cells the top bar inside a part drops the product name: Back, the name, the part's name, Guide
+      // and the cross need about 78 (measured with tools/render-band: at 62 "Context size" ran into Guide).
+      const headTight = e.surface !== 'terminal' && typeof e.props.bodyColumns === 'number' && e.props.bodyColumns < 80
       // The app gives this slot maxRows rows and drops a taller tree whole, without a word. With gaps the panel is 12
       // rows (2 border, 2 header, 4 settings, 4 gaps); without, 7.
       const roomy = slotRows >= 12
@@ -7281,8 +7284,9 @@ Saved to ${out}.md and .json` }
               <Box key="settings-trail" flexDirection="row" alignItems="center" gap={1}>
                 <Button key="settings-back" variant="secondary" label="← Settings" onPress={openCard(null)} />
                 {!term && Svg ? <Svg key="settings-mark" source={markLogoSvg(BRAND_ORANGE, 'on')} alt={PRODUCT_NAME} width={14} height={14} /> : null}
-                <Text color={DASH_TEXT} bold>{PRODUCT_NAME}</Text>
-                <Text color={DASH_DIM}>·</Text>
+                {/* A narrow window leaves the name out (the mark says it): with it, the part's name ran into Guide. */}
+                {headTight ? null : <Text color={DASH_TEXT} bold>{PRODUCT_NAME}</Text>}
+                {headTight ? null : <Text color={DASH_DIM}>·</Text>}
                 <Text color={DASH_TEXT} italic>{CARDS.find(c => c.id === card)?.title}</Text>
               </Box>
             )}
