@@ -6050,7 +6050,7 @@ describe('more room for this chat (R10)', () => {
     }
     const box = byKey(await band.drawn(), 'setup-text') as { children: { children: string[] }[] }
     // The notice is the first thing in the text box (maxRows 10 leaves it two rows); the size's explanation gave way.
-    expect(box.children[0].children[0]).toContain('A security rule keeps plugins out')
+    expect(box.children[0]?.children[0]).toContain('A security rule keeps plugins out')
     await band.unmount()
   })
 
