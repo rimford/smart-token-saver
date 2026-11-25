@@ -663,7 +663,7 @@ export type JudgeConfig = {
   swampAt: number
   /** default: the dashboard band above the prompt; minimal: the footer's small buttons and no band. */
   layout: 'default' | 'minimal'
-  /** The terminal only. top: the bar above the prompt; bottom: a status line under the prompt and no bar at rest. */
+  /** Acts in the terminal only, set from either surface. top: the bar above the prompt; bottom: a status line under the prompt and no bar at rest. */
   terminalPlace: 'top' | 'bottom'
   /** Who writes a compaction's summary. auto: Haiku 5.5 when the cache is cold, the chat's model when it is warm.
    *  session: always the chat's own model. */
@@ -7317,7 +7317,10 @@ Saved to ${out}.md and .json` }
             // The slot reaches 10 px past the panel below, hence the padding on top (measured: 18 px above the
             // cards, 19 below); a row kept free under them had put the air below.
             <Box key="settings-cards-room" flexDirection="column" flexGrow={term ? 0 : 1} justifyContent="center" paddingTop={term ? 0 : 0.75}>
-            <Box key="settings-cards" flexDirection="row" flexWrap="wrap" columnGap={1} rowGap={term ? 0 : 1}>
+            {/* A narrow window: the cards keep the width they were made for (two rows) and scroll sideways, as an open
+                card's rows do. Wrapped into a third row they were cut at the bottom, and the slot cannot scroll down. */}
+            <Box key="settings-cards-scroll" flexDirection="column" {...(wideCols ? { overflowX: 'scroll' } : {})}>
+            <Box key="settings-cards" flexDirection="row" flexWrap="wrap" columnGap={1} rowGap={term ? 0 : 1} {...(wideCols ? { width: wideCols, flexShrink: 0 } : {})}>
               <Box position="absolute" top={0} left={0} />
               {CARDS.map(c => (
                 <Box key={`card-${c.id}`} position="relative" flexDirection="column" flexGrow={1} width={0} minWidth={18}
@@ -7353,6 +7356,7 @@ Saved to ${out}.md and .json` }
                   </Box>}
                 </Box>
               ))}
+            </Box>
             </Box>
             </Box>
           ) : (
@@ -7654,10 +7658,12 @@ Saved to ${out}.md and .json` }
               gridRow('show-layout', 'Show', [
                 pick({ key: 'settings-layout', value: shown.layout, options: [{ value: 'default', label: 'Bar' }, { value: 'minimal', label: 'Buttons only' }], onSelect: set('layout') }),
               ], shown.layout === 'minimal' ? '☰, Smart, Reduce and ⚙ under the prompt.' : 'Effort, context, cache and buttons in one bar.'),
-              // The terminal only: the bar above the prompt can cover what lies there. Below, one status line instead.
-              ...(term ? [gridRow('show-terminal', 'Terminal', [
+              // Acts in the terminal only (the bar above the prompt can cover what lies there; below, one status line
+              // instead), but shown in the app too, so every setting sits in one place.
+              gridRow('show-terminal', 'Terminal', [
                 pick({ key: 'settings-terminal-place', value: shown.terminalPlace, options: [{ value: 'top', label: 'Above prompt' }, { value: 'bottom', label: 'Below prompt' }], onSelect: set('terminalPlace') }),
-              ], shown.terminalPlace === 'bottom' ? 'A status line under the prompt. /smarttokensaver settings opens this panel.' : 'The bar above the prompt.')] : []),
+              ], !term ? 'When Claude runs in a terminal. The app keeps its bar.'
+                : shown.terminalPlace === 'bottom' ? 'A status line under the prompt. /smarttokensaver settings opens this panel.' : 'The bar above the prompt.'),
               gridRow('show-panels', 'Panels', [
                 pick({ key: 'settings-appearance', value: shown.appearance, options: [{ value: 'auto', label: 'Automatic' }, { value: 'dark', label: 'Always dark' }, { value: 'light', label: 'Always light' }], onSelect: set('appearance') }),
               ], shown.appearance === 'auto' ? 'Follows the app, light or dark.' : `These panels only, ${shown.appearance}. The app keeps its own mode.`),

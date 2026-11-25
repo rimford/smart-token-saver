@@ -3141,7 +3141,7 @@ describe('terminal bands', () => {
     await hint.unmount()
   })
 
-  test('Below prompt is the terminal\'s only: the desktop keeps its bar and its footer', { options: { layout: 'default', terminalPlace: 'bottom' } } as never, async ($, on) => {
+  test('Below prompt acts in the terminal only: the desktop keeps its bar and footer, its Settings can set it', { options: { layout: 'default', terminalPlace: 'bottom' } } as never, async ($, on) => {
     engine(on)
     hintLine(on)
     mock.clock(on)
@@ -3157,6 +3157,14 @@ describe('terminal bands', () => {
     const hint = await $.ui.mount(DESK_HINT)
     expect(await drawn(hint)).not.toContain('✦')
     await hint.unmount()
+    // The app's Settings offer the place too, so every setting sits in one place.
+    await $.command.run({ command: 'smarttokensaver', args: 'settings' } as never)
+    const panel = await $.ui.mount(DESK_BAND)
+    await panel.press({ key: 'settings-card-show' })
+    expect(await drawn(panel)).toContain('When Claude runs in a terminal')
+    await panel.select({ key: 'settings-terminal-place', value: 'top' })
+    expect(await drawn(panel)).toContain('✓ Saved')
+    await panel.unmount()
   })
 })
 
@@ -5976,8 +5984,12 @@ describe('more room for this chat (R10)', () => {
     const propsOf = (n: Record<string, unknown> | undefined) => ((n?.props ?? n ?? {}) as Record<string, unknown>)
     await $.command.run({ command: 'smarttokensaver', args: 'settings' } as never)
     const panel = await $.ui.mount(narrow)
-    await panel.press({ key: 'settings-card-effort' })
+    // The overview too: its cards keep two rows at the design width and scroll sideways (a third row was cut).
     let tree = await panel.drawn()
+    expect(propsOf(byKey(tree, 'settings-cards-scroll')).overflowX).toBe('scroll')
+    expect(propsOf(byKey(tree, 'settings-cards')).width).toBe(100)
+    await panel.press({ key: 'settings-card-effort' })
+    tree = await panel.drawn()
     expect(propsOf(byKey(tree, 'settings-rows-scroll')).overflowX).toBe('scroll')
     expect(propsOf(byKey(tree, 'settings-rows')).width).toBe(100)
     expect(byKey(byKey(tree, 'settings-rows-scroll'), 'settings-back')).toBeUndefined()
