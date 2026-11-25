@@ -7373,9 +7373,10 @@ Saved to ${out}.md and .json` }
               {/* What the part does, one dim line; then a blank row and the part's rows on the grid below. */}
               {/* Context size draws its own top line (a note in place of this one) and keeps its rows close: it must fit
                   the slot whole, also with its command. */}
-              {/* Support has none: its parts' names (This plugin, Maintainer) say it, and the card needs the rows. */}
-              {card === 'context' || card === 'lab' ? null : <Text dimColor wrap={term ? 'truncate' : 'wrap'}>{CARDS.find(c => c.id === card)?.about}</Text>}
-              {card === 'context' || card === 'lab' || term ? null : <Box key="settings-card-gap" height={CARD_ROW_GAP} flexShrink={0} />}
+              {/* Support has none: its parts' names (This plugin, Maintainer) say it, and the card needs the rows. Nor has
+                  Customize: with its Terminal row, Uninstall was cut at the bottom. */}
+              {card === 'context' || card === 'lab' || card === 'show' ? null : <Text dimColor wrap={term ? 'truncate' : 'wrap'}>{CARDS.find(c => c.id === card)?.about}</Text>}
+              {card === 'context' || card === 'lab' || card === 'show' || term ? null : <Box key="settings-card-gap" height={CARD_ROW_GAP} flexShrink={0} />}
               {/* Half a row between rows: lines that touch read as one block, and a whole row each made the cards scroll. */}
               {/* A narrow window scrolls the rows sideways (they keep the width they were made for). A scroll box also cuts
                   what leaves it at the top or bottom, so while a fixed mode's own list is open (it may open upwards,
@@ -7669,7 +7670,7 @@ Saved to ${out}.md and .json` }
               ], shown.appearance === 'auto' ? 'Follows the app, light or dark.' : `These panels only, ${shown.appearance}. The app keeps its own mode.`),
               gridGap('show-gap-1'),
             ]),
-            gridRow('show-details', 'In the bar', toggles, 'The cache countdown; who picked the effort, beside Smart.', 'settings-show-about'),
+            gridRow('show-details', 'In the bar', toggles, 'Shown beside Smart.', 'settings-show-about'),
             ...(bare ? [] : [
               gridGap('show-gap-2'),
               gridRow('show-uninstall', 'Remove', [uninstallButton($, themedEls($.ui.resolve(e), e.surface))]),
