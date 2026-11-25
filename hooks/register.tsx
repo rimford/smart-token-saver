@@ -663,6 +663,8 @@ export type JudgeConfig = {
   swampAt: number
   /** default: the dashboard band above the prompt; minimal: the footer's small buttons and no band. */
   layout: 'default' | 'minimal'
+  /** The terminal only. top: the bar above the prompt; bottom: a status line under the prompt and no bar at rest. */
+  terminalPlace: 'top' | 'bottom'
   /** Who writes a compaction's summary. auto: Haiku 5.5 when the cache is cold, the chat's model when it is warm.
    *  session: always the chat's own model. */
   compactWith: 'auto' | 'session'
@@ -1037,6 +1039,7 @@ let config: JudgeConfig = {
   hide: ['reason'],
   swampAt: SWAMP_AUTO,
   layout: 'default',
+  terminalPlace: 'top',
   compactWith: 'auto',
   handoffButton: 'advised',
   modelAuto: 'off',
@@ -1061,6 +1064,7 @@ export function readConfig(options: unknown): JudgeConfig {
     ceiling: EFFORTS.includes(str(o.effortCeiling) as Effort) ? (str(o.effortCeiling) as Effort) : 'high',
     swampAt: SWAMP_STEPS.includes(Number(str(o.swampAt)) as (typeof SWAMP_STEPS)[number]) ? Number(str(o.swampAt)) : SWAMP_AUTO,
     layout: str(o.layout) === 'minimal' ? 'minimal' : 'default',
+    terminalPlace: str(o.terminalPlace) === 'bottom' ? 'bottom' : 'top',
     // "haiku" (Haiku always) is gone: it reads as Auto, which uses Haiku whenever the cache is cold.
     compactWith: str(o.compactWith) === 'session' ? 'session' : 'auto',
     handoffButton: str(o.handoffButton) === 'always' ? 'always' : 'advised',
@@ -3267,6 +3271,7 @@ const SETTING_FIELDS = {
   hide: 'hide',
   swampAt: 'swampAt',
   layout: 'layout',
+  terminalPlace: 'terminalPlace',
   compactWith: 'compactWith',
   handoffButton: 'handoffButton',
   modelAuto: 'modelAuto',
@@ -3316,6 +3321,7 @@ async function saveSetting($: EngineInterface, field: keyof typeof SETTING_FIELD
     hide: config.hide.join(','),
     swampAt: swampValue(config.swampAt),
     layout: config.layout,
+    terminalPlace: config.terminalPlace,
     compactWith: config.compactWith,
     handoffButton: config.handoffButton,
     modelAuto: config.modelAuto,
@@ -5173,6 +5179,26 @@ let autoFlipAt = 0
 let helpersSeen: string | undefined
 let helpersFlipAt = 0
 
+/** The terminal's status line under the prompt (Settings → Customize → Terminal → Below prompt): the bar's first line,
+ *  in words. Handoff advice comes first; the bar itself still shows above while there is some (see the AbovePrompt hook). */
+async function bottomStatus($: EngineInterface): Promise<string> {
+  const v = await snap($)
+  const advice = (await read($, handoffAdvice)) ?? null
+  const cacheShown = config.hide.includes('timer') || (v.cacheNow !== null && v.cacheNow <= 0) ? null : v.cacheNow
+  const { head } = dashboardLines({
+    modelName: modelDisplayName(sessionModelId) ?? MODELS.find(m => m.key === v.modelNow)?.label,
+    auto: v.auto,
+    paused: Boolean(v.pausedNow),
+    judging: Boolean(v.judging),
+    effort: effortOf(v, v.modelNow ?? (await sessionModel($))),
+    cacheNow: cacheShown,
+    contextPercent: lastContext && lastContext.window && limits().trigger !== null ? lastContext.percent : null,
+    reason: '',
+    last: null,
+  })
+  return advice ? `Handoff would suit · ${head}` : head
+}
+
 /** The dashboard: what Smart Token Saver is doing, and Auto, Handoff and settings. The slot above the prompt at rest. */
 async function dashboardBand($: EngineInterface, e: RenderInput<'AbovePrompt'>) {
   const els = themedEls($.ui.resolve(e), e.surface)
@@ -6615,6 +6641,20 @@ Saved to ${out}.md and .json` }
   // button that switches Auto off and on. A Button cannot be coloured and the footer draws no outline or tint, so
   // plain Text is what is purple. While the judge decides it says "Deciding…", for a moment after Auto switches the level it says
   // "Low → High", and while Auto is off it says "Off" in the dim colour. Auto is switched with /smarttokensaver auto.
+  // Terminal, Below prompt: the bar's first line at the end of the hint line under the prompt. The engine's own line
+  // (its pills) stays: only `tail` is set, after any tail a hook before set.
+  on('ui.render', { component: 'PromptHint' }, async ($, e, next) => {
+    if (e.surface !== 'terminal' || config.terminalPlace !== 'bottom') return next(e)
+    let status = ''
+    try {
+      status = await bottomStatus($)
+    } catch {
+      return next(e)
+    }
+    const tail = e.props.tail ? `${e.props.tail} · ${status}` : status
+    return next({ ...e, props: { ...e.props, tail } })
+  })
+
   on('ui.render', { component: 'SessionMode' }, async ($, e, next) => {
     // Takes its turn among this module's drawings (see drawTurn): it names its own surface to the theme.
     const drawn = await drawTurn($)
@@ -7016,6 +7056,7 @@ Saved to ${out}.md and .json` }
         handoffSkill: draft.handoffSkill ?? config.handoffSkill,
         swampAt: draft.swampAt ?? swampValue(config.swampAt),
         layout: draft.layout ?? config.layout,
+        terminalPlace: draft.terminalPlace ?? config.terminalPlace,
         compactWith: draft.compactWith ?? config.compactWith,
         handoffButton: draft.handoffButton ?? config.handoffButton,
         modelAuto: draft.modelAuto ?? config.modelAuto,
@@ -7605,6 +7646,10 @@ Saved to ${out}.md and .json` }
               gridRow('show-layout', 'Show', [
                 pick({ key: 'settings-layout', value: shown.layout, options: [{ value: 'default', label: 'Bar' }, { value: 'minimal', label: 'Buttons only' }], onSelect: set('layout') }),
               ], shown.layout === 'minimal' ? '☰, Smart, Reduce and ⚙ under the prompt.' : 'Effort, context, cache and buttons in one bar.'),
+              // The terminal only: the bar above the prompt can cover what lies there. Below, one status line instead.
+              ...(term ? [gridRow('show-terminal', 'Terminal', [
+                pick({ key: 'settings-terminal-place', value: shown.terminalPlace, options: [{ value: 'top', label: 'Above prompt' }, { value: 'bottom', label: 'Below prompt' }], onSelect: set('terminalPlace') }),
+              ], shown.terminalPlace === 'bottom' ? 'A status line under the prompt. /smarttokensaver settings opens this panel.' : 'The bar above the prompt.')] : []),
               gridRow('show-panels', 'Panels', [
                 pick({ key: 'settings-appearance', value: shown.appearance, options: [{ value: 'auto', label: 'Automatic' }, { value: 'dark', label: 'Always dark' }, { value: 'light', label: 'Always light' }], onSelect: set('appearance') }),
               ], shown.appearance === 'auto' ? 'Follows the app, light or dark.' : `These panels only, ${shown.appearance}. The app keeps its own mode.`),
@@ -8482,6 +8527,17 @@ Saved to ${out}.md and .json` }
           </Box>
         </Box>
       )
+    }
+    // Terminal, Below prompt (Settings → Customize → Terminal): no bar at rest; the status line under the prompt says
+    // what it would (the PromptHint hook). A model question still asks here, and Handoff advice keeps the bar, with its
+    // Handoff button, until it is taken or passes.
+    if (e.surface === 'terminal' && config.terminalPlace === 'bottom') {
+      adviceNow = (await read($, handoffAdvice)) ?? null
+      if (adviceNow === null) {
+        introKind = 'rest'
+        const { question } = await effortRows($, e)
+        return question ?? next(e)
+      }
     }
     // At rest: the dashboard, unless the person picked the minimal look (the footer's buttons, no band).
     if (config.layout === 'default') {

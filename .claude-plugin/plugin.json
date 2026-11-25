@@ -161,6 +161,16 @@
         "minimal"
       ]
     },
+    "terminalPlace": {
+      "type": "string",
+      "title": "Terminal",
+      "description": "Where the bar sits in the terminal. top (Above prompt): the bar above the prompt. bottom (Below prompt): one dim status line under the prompt (effort, cache, context); alerts, the setup and Settings still open above it. /smarttokensaver settings opens Settings, /smarttokensaver auto switches Smart.",
+      "default": "top",
+      "options": [
+        "top",
+        "bottom"
+      ]
+    },
     "abControl": {
       "type": "string",
       "title": "Maintainer only: Measurement control share",

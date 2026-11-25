@@ -1301,6 +1301,7 @@ describe('judge choice (plugin settings)', () => {
       hide: ['reason'],
       swampAt: 0,
       layout: 'default',
+      terminalPlace: 'top',
       compactWith: 'auto',
       handoffButton: 'advised',
       modelAuto: 'off',
@@ -3078,6 +3079,81 @@ describe('terminal bands', () => {
     expect(await drawn(panel)).toContain('✓ Saved')
     expect(JSON.stringify(await panel.find({ key: 'settings-appearance-light' }))).toContain('"variant":"secondary"')
     await panel.unmount()
+  })
+
+  const HINT = { plugin: 'smarttokensaver', surface: 'terminal', component: 'PromptHint', props: { isDraft: false, isWorking: false, hint: '? for shortcuts' } } as never
+  const DESK_HINT = { plugin: 'smarttokensaver', surface: 'desktop', component: 'PromptHint', props: { isDraft: false, isWorking: false, hint: '' } } as never
+  // The engine's own hint line, as text: what it draws, then the tail a hook set.
+  const hintLine = (on: On) => on('ui.render', { component: 'PromptHint' }, (h, e) => {
+    const { Text } = h.ui.resolve(e)
+    return Text({ children: [e.props.hint, e.props.tail ?? ''].filter(Boolean).join(' ') } as never) as never
+  })
+
+  test('Terminal, Below prompt: no bar at rest, a status line under the prompt; alerts and Settings still open above', { options: { layout: 'default', terminalPlace: 'bottom' } } as never, async ($, on) => {
+    engine(on)
+    hintLine(on)
+    mock.clock(on)
+    await start($, on)
+    const guide = await $.ui.mount(at(120))
+    await guide.press({ key: 'setup-close' })
+    await guide.unmount()
+    const band = await $.ui.mount(at(120))
+    expect(await band.find({ key: 'dash-auto' })).toBeUndefined()
+    expect(await band.find({ key: 'auto' })).toBeUndefined()
+    await band.unmount()
+    const hint = await $.ui.mount(HINT)
+    const line = await drawn(hint)
+    expect(line).toContain('✦')
+    expect(line).toContain('? for shortcuts')
+    await hint.unmount()
+    // An alert still shows above the prompt.
+    await $.command.run({ command: 'smarttokensaver', args: 'swamp' } as never)
+    const alert = await $.ui.mount(at(120))
+    expect(await drawn(alert)).toContain('"children":["Effort"]')
+    await alert.unmount()
+    // Settings opens above, and Customize offers the place.
+    await $.command.run({ command: 'smarttokensaver', args: 'settings' } as never)
+    const panel = await $.ui.mount(at(120))
+    await panel.press({ key: 'settings-card-show' })
+    expect(await panel.find({ key: 'settings-terminal-place-bottom' })).toBeDefined()
+    expect(JSON.stringify(await panel.find({ key: 'settings-terminal-place-bottom' }))).toContain('"variant":"secondary"')
+    await panel.press({ key: 'settings-terminal-place-top' })
+    expect(await drawn(panel)).toContain('✓ Saved')
+    await panel.unmount()
+  })
+
+  test('Terminal, Above prompt (the default): the bar as before, the hint line untouched', { options: { layout: 'default' } } as never, async ($, on) => {
+    engine(on)
+    hintLine(on)
+    mock.clock(on)
+    await start($, on)
+    const guide = await $.ui.mount(at(120))
+    await guide.press({ key: 'setup-close' })
+    await guide.unmount()
+    const band = await $.ui.mount(at(120))
+    expect(await band.find({ key: 'dash-auto' })).toBeDefined()
+    await band.unmount()
+    const hint = await $.ui.mount(HINT)
+    expect(await drawn(hint)).not.toContain('✦')
+    await hint.unmount()
+  })
+
+  test('Below prompt is the terminal\'s only: the desktop keeps its bar and its footer', { options: { layout: 'default', terminalPlace: 'bottom' } } as never, async ($, on) => {
+    engine(on)
+    hintLine(on)
+    mock.clock(on)
+    on('session.start', (_$, e) => ({ cwd: e.cwd }) as never)
+    on('command.register', () => ({ value: undefined }) as never)
+    await $.session.start({ cwd: '.', surface: 'desktop', isInteractive: true } as never)
+    const guide = await $.ui.mount(DESK_BAND)
+    await guide.press({ key: 'setup-close' })
+    await guide.unmount()
+    const band = await $.ui.mount(DESK_BAND)
+    expect(await band.find({ key: 'dash-auto' })).toBeDefined()
+    await band.unmount()
+    const hint = await $.ui.mount(DESK_HINT)
+    expect(await drawn(hint)).not.toContain('✦')
+    await hint.unmount()
   })
 })
 

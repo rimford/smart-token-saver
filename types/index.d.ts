@@ -53,6 +53,7 @@ export type SettingsDraft = {
   swampAt?: string
   /** default (dashboard band) or minimal (footer buttons). */
   layout?: string
+  terminalPlace?: string
   /** auto (Haiku 5.5 writes the summary when the cache is cold, the chat's model when warm) or session (always the chat's model). */
   compactWith?: string
   /** The compaction window in tokens ("300000"), or "default" for Claude Code's own. */

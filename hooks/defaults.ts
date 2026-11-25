@@ -16,6 +16,7 @@ export const CONFIG_DEFAULTS: Readonly<Record<string, string>> = {
   "appearance": "auto",
   "theme": "navy",
   "layout": "default",
+  "terminalPlace": "top",
   "abControl": "0",
   "compactWindow": "300000",
   "measureLog": "off"
