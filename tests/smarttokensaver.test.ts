@@ -3656,6 +3656,34 @@ describe('dashboard', () => {
     await band.unmount()
   })
 
+  test('Terminal, Below prompt with Buttons only: Handoff advice brings the bar back, with its Handoff button', { options: { layout: 'minimal', compactWindow: 'default', terminalPlace: 'bottom' } } as never, async ($, on) => {
+    engine(on)
+    recordSteps(on)
+    const mocked = mock.clock(on)
+    on('session.usage', () => ({ value: { context: { tokens: 490_000, window: 1_000_000, percent: 49 } } }) as never)
+    on('model.complete', (_$, e) => {
+      const text = String((e as { system?: string }).system ?? '').includes('decide whether the person should hand off')
+        ? JSON.stringify({ handoff: 'Task done, new topic' })
+        : '{"model":"opus","effort":"high","why":"big refactor"}'
+      return { value: { isAnswered: true as const, text, usage: USAGE } }
+    })
+    const TERM = { plugin: 'smarttokensaver', surface: 'terminal', ...BAND } as never
+    await start($, on, 'terminal')
+    await closeSetup($, TERM)
+    await mocked.advance(16_000)
+    let band = await $.ui.mount(TERM)
+    expect(await band.find({ key: 'dash-handoff' })).toBeUndefined()
+    await band.unmount()
+    await $.prompt.submit({ text: 'completely different: help me plan a trip to Lisbon', wait: false, origin: { kind: 'composer' } })
+    await step($)
+    await $.prompt.submit({ text: 'and which neighbourhood should I stay in for the first night', wait: false, origin: { kind: 'composer' } })
+    await step($)
+    band = await $.ui.mount(TERM)
+    expect(await band.find({ key: 'dash-handoff' })).toBeDefined()
+    expect(await drawn(band)).toContain('Handoff would suit: Task done, new topic')
+    await band.unmount()
+  })
+
   test('the handoff check reads the purpose, the trail, the last reply, the fill and the cache; an unclear answer is no', () => {
     const messages = [
       { role: 'user', text: 'build the settings page' },

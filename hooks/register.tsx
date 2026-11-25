@@ -7918,7 +7918,8 @@ Saved to ${out}.md and .json` }
           const t = typeof l === 'string' ? l : l && typeof l === 'object' && 'accent' in l ? (l as { accent: string }).accent : ''
           return t && setupCols ? Math.max(1, Math.ceil(t.length / (setupCols * 0.85))) : 1
         }
-        const shownLines: unknown[] = noticeUp ? [...lines, { accent: notice!.text }] : [...lines]
+        // The notice goes first: it says what to do before Next works, and the lines after it are what gives way.
+        const shownLines: unknown[] = noticeUp ? [{ accent: notice!.text }, ...lines] : [...lines]
         while (look !== 'done' && narrow && setupCols && shownLines.reduce((n: number, l) => n + rowsOf(l), 0) > textRows) {
           let drop = -1
           shownLines.forEach((l, i) => { if (i > 0 && typeof l === 'string') drop = i })
@@ -7950,10 +7951,10 @@ Saved to ${out}.md and .json` }
             <Text key="setup-question" bold wrap="wrap">{question}</Text>
             <Box key="setup-text" flexDirection="column" flexShrink={0} {...(look === 'done' ? {} : { height: textRows, overflow: 'hidden' })}>
               {shownLines.map((l, i) => typeof l === 'string'
-                ? <Text key={`setup-line-${i}`} dimColor={i > 0} wrap="wrap">{l}</Text>
+                ? <Text key={`setup-line-${i}`} dimColor={i > (noticeUp ? 1 : 0)} wrap="wrap">{l}</Text>
                 : l && typeof l === 'object' && 'accent' in l
                   ? <Text key="setup-notice-words" color={ACCENT} wrap="wrap">{(l as { accent: string }).accent}</Text>
-                  : <Box key={`setup-line-${i}`}>{l}</Box>)}
+                  : <Box key={`setup-line-${i}`}>{l as never}</Box>)}
             </Box>
             {/* The done step's Close sits in the row of its last line where that line is short; narrow, it gets a row
                 of its own, so it never covers the words. */}
@@ -8538,6 +8539,8 @@ Saved to ${out}.md and .json` }
         const { question } = await effortRows($, e)
         return question ?? next(e)
       }
+      // The advice needs its Handoff button: the bar, also where Show is Buttons only.
+      return dashboardBand($, e)
     }
     // At rest: the dashboard, unless the person picked the minimal look (the footer's buttons, no band).
     if (config.layout === 'default') {
