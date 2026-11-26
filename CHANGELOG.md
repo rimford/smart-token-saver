@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.1 (2026-11-25)
+## 1.0.1 (2026-11-26)
 
 - **Setup works in a narrow window.** In step 2 (*When should a chat be compacted?*) the Apply button sat at the end of
   the row of sizes and was cut off where the window was narrow, so only the size in use could be picked. On the
