@@ -286,7 +286,7 @@ const COMPACT_CHOICES = [
   { value: 'session', label: "Chat's model", about: "Always the chat's model. On a cold cache that costs full price." },
 ] as const
 /** Said with the Compact with choice where the compaction hook was seen skipped: Haiku never gets it here. */
-export const COMPACT_BLOCKED_NOTE = `Your admins keep ${HAIKU} out: the chat's model writes every summary.`
+export const COMPACT_BLOCKED_NOTE = `Claude Code keeps ${HAIKU} out here: the chat's model writes every summary.`
 const BIAS_WORDS = ['Cheapest', 'Cheaper', 'Balanced', 'Smarter', 'Smartest'] as const
 // What Smart Token Saver last read of the compaction window (see readWindow), for the Context card and the setup step.
 const windowInfo = atom({ plugin: 'smarttokensaver', key: 'windowInfo' } as const, null)

@@ -40,7 +40,7 @@ Overview line: what shows and how it looks, for example *Bar · automatic*.
 
 ## Handoff & alerts
 
-Overview line: who writes a Full handoff and when the context alert comes, for example *Built in · alert at Auto*.
+Overview line: who writes a Full handoff and when the context alert comes, for example *Built in · alert Auto*.
 
 | Row | What it does | Option |
 | --- | --- | --- |

@@ -6,8 +6,8 @@
   the row of sizes and was cut off where the window was narrow, so only the size in use could be picked. On the
   desktop it now sits beside Back and Next. In a narrow window the setup also uses shorter words, stacks its rows and
   keeps a blank row between the text and the choices.
-- **Settings in a narrow window.** Every part fits the widest window the app gives without a scroll bar (a few hints are
-  shorter for it). In a narrower one an open card's rows keep their full width and scroll sideways, the overview only
+- **Settings in a narrow window.** The parts fit the widest window the app gives without a scroll bar in their usual
+  states (a few hints are shorter for it). In a narrower one an open card's rows keep their full width and scroll sideways, the overview only
   where a third row of cards would be cut at the bottom (its titles stay on one line). The scroll bar shows only while
   something is wider than the window, at the panel's foot in every part. The line on what a part does scrolls with its
   rows instead of wrapping. The top bar never runs into itself: as the window narrows, the product name goes first,
