@@ -2856,7 +2856,7 @@ describe('settings panel', () => {
     expect(await drawn(panel)).toContain('Cheaper when it can')
     // The cards say what is set.
     expect(await drawn(panel)).toContain('Smarter · medium to high')
-    expect(await drawn(panel)).toContain('/session-handoff · alert at')
+    expect(await drawn(panel)).toContain('/session-handoff · alert ')
     // About: our version and the upstream base, with credit.
     await panel.press({ key: 'settings-card-about' })
     expect(await drawn(panel)).toContain(`Smart Token Saver ${OWN_VERSION}`)

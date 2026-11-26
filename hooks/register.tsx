@@ -286,7 +286,7 @@ const COMPACT_CHOICES = [
   { value: 'session', label: "Chat's model", about: "Always the chat's model. On a cold cache that costs full price." },
 ] as const
 /** Said with the Compact with choice where the compaction hook was seen skipped: Haiku never gets it here. */
-export const COMPACT_BLOCKED_NOTE = `Here Claude Code keeps ${HAIKU} out: the chat's model writes every summary (your admins can change that).`
+export const COMPACT_BLOCKED_NOTE = `Your admins keep ${HAIKU} out: the chat's model writes every summary.`
 const BIAS_WORDS = ['Cheapest', 'Cheaper', 'Balanced', 'Smarter', 'Smartest'] as const
 // What Smart Token Saver last read of the compaction window (see readWindow), for the Context card and the setup step.
 const windowInfo = atom({ plugin: 'smarttokensaver', key: 'windowInfo' } as const, null)
@@ -7010,6 +7010,10 @@ Saved to ${out}.md and .json` }
       // A fixed width (100 cells) kept the bar in the widest window the app gives (85 cells inside the panel). The top
       // bar with Back, Guide and ✕ stays where it is.
       const rowsScroll = e.surface !== 'terminal' && typeof e.props.bodyColumns === 'number'
+      // While a fixed mode's own list is open the box does not scroll (see settings-rows-scroll), and rows without a
+      // width wrapped their hints in a narrow window, which moved the field down and cut its list at the panel's foot.
+      // There they hold the width the widest window gives (85 cells inside the panel at 89 columns), which every part fits.
+      const rowsHold = rowsScroll && openChoice !== null && (e.props.bodyColumns as number) < 89 ? 85 : 0
       // The overview scrolls only where its seven cards would take a third row, cut at the slot's foot: fewer than four
       // at their least width (18, gaps of 1) beside each other, inside the panel's padding of 2 a side. Then it keeps
       // two rows (4 + 3) as wide as they need. At the design width of an open card (100) it scrolled in a window that
@@ -7119,7 +7123,7 @@ Saved to ${out}.md and .json` }
         about: `${PRODUCT_NAME} ${ownVersion || OWN_VERSION}`,
         // What the card holds, short enough for one line.
         lab: maint ? 'Update · Maintain' : 'Update · Report a bug',
-        handoff: `${shown.handoffSkill ? `/${shown.handoffSkill}` : 'Built in'} · alert at ${shown.swampAt === 'auto' ? 'Auto' : `${shown.swampAt}%`}`,
+        handoff: `${shown.handoffSkill ? `/${shown.handoffSkill}` : 'Built in'} · alert ${shown.swampAt === 'auto' ? 'Auto' : `${shown.swampAt}%`}`,
         show: `${shown.layout === 'minimal' ? 'Buttons only' : 'Bar'} · ${{ auto: 'automatic', dark: 'dark', light: 'light' }[shown.appearance as 'auto' | 'dark' | 'light'] ?? 'automatic'}`,
       }
       // The cache timer, the judge's line (who picked and how sure) and the three alerts can be switched off here (an
@@ -7404,7 +7408,7 @@ Saved to ${out}.md and .json` }
                   rows above) the box does not scroll: the dropdowns sit near the left edge, in view. The box reaches the
                   panel's foot, so its bar sits there in every part, not under the last row. */}
               <Box key="settings-rows-scroll" flexDirection="column" flexGrow={term ? 0 : 1} {...(rowsScroll && !openChoice ? { overflowX: 'scroll' } : {})}>
-              <Box key="settings-rows" flexDirection="column" alignItems="flex-start" gap={term ? 0 : CARD_ROW_GAP} flexShrink={0}>
+              <Box key="settings-rows" flexDirection="column" alignItems="flex-start" gap={term ? 0 : CARD_ROW_GAP} flexShrink={0} {...(rowsHold ? { width: rowsHold } : {})}>
                 {/* The line on what the part does: the first row, so it scrolls with the rows and is as wide as they are
                     (wrapped to the window it took two or three lines and pushed the rows out at the bottom). Its box has
                     a width of its own, as each row has: in a scroll box the app draws a line without one in the table
