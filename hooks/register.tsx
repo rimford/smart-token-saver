@@ -282,7 +282,7 @@ const MODEL_CHOICES = [
 ] as const
 // The Model card's second picker: who writes a compaction's summary.
 const COMPACT_CHOICES = [
-  { value: 'auto', label: 'Auto', about: `${HAIKU} on a cold cache, the chat's model on a warm one: the cheaper.` },
+  { value: 'auto', label: 'Auto', about: `${HAIKU} on a cold cache, else the chat's model: the cheaper.` },
   { value: 'session', label: "Chat's model", about: "Always the chat's model. On a cold cache that costs full price." },
 ] as const
 /** Said with the Compact with choice where the compaction hook was seen skipped: Haiku never gets it here. */
@@ -321,8 +321,6 @@ const SETUP_ART_W = 2200
 const SETUP_ART_H = 400
 /** Under this many cells across the band the setup takes its narrow layout (the window step's sizes need about 88: at 80 Individual was cut). */
 const SETUP_NARROW_COLUMNS = 92
-/** The width the settings panel is laid out for; a narrower band scrolls it sideways (at 82 cells its cards were cut). */
-const SETTINGS_DESIGN_COLUMNS = 100
 // The band when the context is swamped: murky green, bubbles rising, slow ripples.
 const SWAMP_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="440" height="64" viewBox="0 0 360 30" preserveAspectRatio="xMaxYMid slice"><style>:root{color-scheme:light dark}html,body{margin:0}svg{background:transparent;display:block}.b{fill:none;stroke:#cfe8b8;stroke-width:.5;opacity:0;animation-name:rise;animation-timing-function:ease-in;animation-iteration-count:infinite}@keyframes rise{0%{opacity:0;transform:translate(0,0)}15%{opacity:.7}80%{opacity:.5}100%{opacity:0;transform:translate(3px,-30px)}}.rp{fill:none;stroke:#a7c98f;stroke-width:.4;stroke-linecap:round;opacity:.25;animation:drift 7s ease-in-out infinite}@keyframes drift{0%,100%{transform:translate(0,0);opacity:.15}50%{transform:translate(4px,0);opacity:.4}}.mk{animation:mk 8s ease-in-out infinite}@keyframes mk{0%,100%{opacity:.85}50%{opacity:1}}</style><defs><linearGradient id="bog" x1="0" x2="1"><stop offset=".43" stop-color="#4f7a3a" stop-opacity="0"/><stop offset=".62" stop-color="#4f7a3a" stop-opacity=".16"/><stop offset=".85" stop-color="#6f9a4f" stop-opacity=".32"/><stop offset="1" stop-color="#9cc27a" stop-opacity=".42"/></linearGradient><linearGradient id="silt" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset=".6" stop-color="#2b3a1f" stop-opacity=".18"/><stop offset="1" stop-color="#1c2614" stop-opacity=".45"/></linearGradient><linearGradient id="fade" x1="0" x2="1"><stop offset=".43" stop-color="#fff" stop-opacity="0"/><stop offset=".7" stop-color="#fff" stop-opacity="1"/></linearGradient><mask id="m"><rect width="360" height="30" fill="url(#fade)"/></mask><pattern id="grain" width="2" height="2" patternUnits="userSpaceOnUse"><rect width=".6" height=".6" fill="#fff" fill-opacity=".06"/></pattern></defs><g mask="url(#m)"><rect class="mk" width="360" height="30" fill="url(#bog)"/><rect width="360" height="30" fill="url(#silt)"/><rect width="360" height="30" fill="url(#grain)"/><path class="rp" style="animation-delay:-0s" d="M190 22 q6 -2 12 0 t12 0"/><path class="rp" style="animation-delay:-2.5s" d="M226 9 q6 -2 12 0 t12 0"/><path class="rp" style="animation-delay:-5s" d="M250 18 q6 -2 12 0 t12 0"/><path class="rp" style="animation-delay:-1.5s" d="M300 24 q6 -2 12 0 t12 0"/><path class="rp" style="animation-delay:-3.8s" d="M322 7 q6 -2 12 0 t12 0"/><circle class="b" cx="168" cy="32" r="1.6" style="animation-duration:6.5s;animation-delay:-0s"/><circle class="b" cx="182" cy="32" r="1.1" style="animation-duration:8s;animation-delay:-2.1s"/><circle class="b" cx="197" cy="32" r="2.0" style="animation-duration:7s;animation-delay:-4.2s"/><circle class="b" cx="210" cy="32" r="1.3" style="animation-duration:9s;animation-delay:-1.0s"/><circle class="b" cx="224" cy="32" r="1.7" style="animation-duration:7.5s;animation-delay:-3.3s"/><circle class="b" cx="238" cy="32" r="1.0" style="animation-duration:8.5s;animation-delay:-5.1s"/><circle class="b" cx="252" cy="32" r="1.4" style="animation-duration:6.8s;animation-delay:-2.6s"/><circle class="b" cx="176" cy="32" r="0.9" style="animation-duration:9.5s;animation-delay:-6.0s"/><circle class="b" cx="232" cy="32" r="0.8" style="animation-duration:10s;animation-delay:-0.5s"/></g></svg>`
 // The band when a usage limit is close: embers, sparks rising.
@@ -2193,7 +2191,7 @@ export function chatWindowWords(override: number, state: ChatWindowState, s: Pic
   if (state === 'active')
     return { bar: `This chat: ${label}`, card: s?.modelValue === override ? `${label} in use, set with /autocompact for every chat on this model.` : `${label} in use for this chat.` }
   if (state === 'not-applied') return { bar: `${label} not applied`, card: `${label} not applied: Claude Code still uses ${s ? windowLabel(s.raw) : 'another window'}.` }
-  return { bar: `${label} asked`, card: `${label} asked. It shows as in use once Claude Code confirms it.` }
+  return { bar: `${label} asked`, card: `${label} asked: in use once Claude Code confirms it.` }
 }
 /** Whether the bar offers More room: near compaction with a size to offer, or while this chat has its own window. */
 function moreRoomShown(): boolean {
@@ -2215,7 +2213,7 @@ async function openContextCard($: EngineInterface) {
   $.ui.invalidate('ui.render')
 }
 /** The hover line of More room, and the guide's words for it. */
-export const MORE_ROOM_TIP = 'A bigger window costs more per message. New chats start on your default again.'
+export const MORE_ROOM_TIP = 'A bigger window costs more per message.'
 
 /** How often the window is read again while a chat is open. */
 const WINDOW_READ_MS = 60_000
@@ -7006,11 +7004,12 @@ Saved to ${out}.md and .json` }
     const slotRows = typeof e.props.maxRows === 'number' && e.props.maxRows > 0 ? e.props.maxRows : 12
     // The settings panel: a branded header bar, then one compact row per setting, a dim hint at the end of each row.
     if (panelOpen) {
-      // An open card's rows are laid out for SETTINGS_DESIGN_COLUMNS. In a narrower band they keep that width and
-      // scroll sideways (the slot itself never does: it cut them at the right edge); the top bar with Back, Guide and ✕
-      // stays where it is.
-      const wideCols = e.surface !== 'terminal' && typeof e.props.bodyColumns === 'number' && e.props.bodyColumns < SETTINGS_DESIGN_COLUMNS
-        ? SETTINGS_DESIGN_COLUMNS : 0
+      // An open card's rows keep their full width (the app does not wrap a line in a sideways scroll box) and scroll
+      // sideways where the band is narrower than they are; the slot itself never does, it cut them at the right edge.
+      // The app draws the scroll bar only while a line is wider than the box, so in a window with room there is none.
+      // A fixed width (100 cells) kept the bar in the widest window the app gives (85 cells inside the panel). The top
+      // bar with Back, Guide and ✕ stays where it is.
+      const rowsScroll = e.surface !== 'terminal' && typeof e.props.bodyColumns === 'number'
       // The overview scrolls only where its seven cards would take a third row, cut at the slot's foot: fewer than four
       // at their least width (18, gaps of 1) beside each other, inside the panel's padding of 2 a side. Then it keeps
       // two rows (4 + 3) as wide as they need. At the design width of an open card (100) it scrolled in a window that
@@ -7115,7 +7114,7 @@ Saved to ${out}.md and .json` }
         : sameSize ? `New & current: ${newSize}` : `New: ${newSize} / Current: ${windowLabel(currentSize)}`
       const summaries: Record<SettingsCard, string> = {
         effort: `${BIAS_WORDS[shown.bias + 2]} · ${shown.floor} to ${shown.ceiling}`,
-        model: shown.modelAuto === 'on' ? 'Cheaper when it can' : "Keeps the chat's model",
+        model: shown.modelAuto === 'on' ? 'Cheaper when it can' : "The chat's model",
         context: contextSummary,
         about: `${PRODUCT_NAME} ${ownVersion || OWN_VERSION}`,
         // What the card holds, short enough for one line.
@@ -7271,8 +7270,8 @@ Saved to ${out}.md and .json` }
         <Box key="settings" position="relative" flexDirection="column" gap={roomy && !term ? 1 : 0} paddingX={term ? 1 : 2} overflow="hidden"
           // The overview is one row lower than the slot allows: at the full height its two rows of cards had 19 px
           // of air above and 39 below. A part keeps the full height, which Effort and Customize
-          // use.
-          height={term ? undefined : card === null && slotRows >= 12 ? slotRows - 1 : slotRows}
+          // use. So does an overview that scrolls: its bar needs the row, and then sits where a part's does.
+          height={term ? undefined : card === null && slotRows >= 12 && !cardsCols ? slotRows - 1 : slotRows}
           {...panelFrame(DASH_BG)}>
           {term ? null : introLayer({ Box, Svg }, 'settings', await introShows($, 'settings'))}
           {/* The top bar: barely a shade lighter than the band, holding the title, Save and the cross. */}
@@ -7336,10 +7335,12 @@ Saved to ${out}.md and .json` }
             // On the desktop the cards sit in the middle between the line under the bar and the slot's lower edge.
             // The slot reaches 10 px past the panel below, hence the padding on top (measured: 18 px above the
             // cards, 19 below); a row kept free under them had put the air below.
-            <Box key="settings-cards-room" flexDirection="column" flexGrow={term ? 0 : 1} justifyContent="center" paddingTop={term ? 0 : 0.75}>
+            <Box key="settings-cards-room" flexDirection="column" flexGrow={term ? 0 : 1} paddingTop={term ? 0 : 0.75}>
             {/* A narrow window: the cards keep the width they were made for (two rows) and scroll sideways, as an open
-                card's rows do. Wrapped into a third row they were cut at the bottom, and the slot cannot scroll down. */}
-            <Box key="settings-cards-scroll" flexDirection="column" {...(cardsCols ? { overflowX: 'scroll' } : {})}>
+                card's rows do. Wrapped into a third row they were cut at the bottom, and the slot cannot scroll down.
+                The box fills the room down to the panel's foot and centres the cards in it, so its scroll bar sits at
+                the foot, as in a part. */}
+            <Box key="settings-cards-scroll" flexDirection="column" flexGrow={term ? 0 : 1} justifyContent="center" {...(cardsCols ? { overflowX: 'scroll' } : {})}>
             <Box key="settings-cards" flexDirection="row" flexWrap="wrap" columnGap={1} rowGap={term ? 0 : 1} {...(cardsCols ? { width: cardsCols, flexShrink: 0 } : {})}>
               <Box position="absolute" top={0} left={0} />
               {CARDS.map(c => (
@@ -7385,7 +7386,7 @@ Saved to ${out}.md and .json` }
             // One part: Back, its name and what it does, then its controls.
             // No gaps between the rows of an open card: the slot has few rows, and a card taller than it is cut off.
             // Never taller than the room left: a card that does not fit is cut at the bottom, never pushed under the bar.
-            <Box key={`settings-${card}`} flexDirection="column" gap={0} flexShrink={1} overflow={openChoice && !term ? undefined : 'hidden'} minHeight={term ? undefined : SETTINGS_BODY_H}>
+            <Box key={`settings-${card}`} flexDirection="column" gap={0} flexShrink={1} flexGrow={term ? 0 : 1} overflow={openChoice && !term ? undefined : 'hidden'} minHeight={term ? undefined : SETTINGS_BODY_H}>
               {/* An empty absolute child makes the box positioned, so its rows paint, and take clicks, over the
                   entrance sweep and the art (absolute layers cover every plain box, and the sweep stays until the next
                   redraw). */}
@@ -7398,19 +7399,21 @@ Saved to ${out}.md and .json` }
               {/* Support has none: its parts' names (This plugin, Maintainer) say it, and the card needs the rows. Nor has
                   Customize: with its Terminal row, Uninstall was cut at the bottom. */}
               {/* Half a row between rows: lines that touch read as one block, and a whole row each made the cards scroll. */}
-              {/* A narrow window scrolls the rows sideways (they keep the width they were made for). A scroll box also cuts
-                  what leaves it at the top or bottom, so while a fixed mode's own list is open (it may open upwards,
-                  over the rows above) the box does not scroll: the dropdowns sit near the left edge, in view. */}
-              <Box key="settings-rows-scroll" flexDirection="column" {...(wideCols && !openChoice ? { overflowX: 'scroll' } : {})}>
-              {/* The line on what the part does scrolls with the rows, at their width: wrapped in a narrow window it took
-                  two or three lines and pushed the rows out at the bottom. */}
-              {card === 'context' || card === 'lab' || card === 'show' ? null : (
-                <Box key="settings-about" flexDirection="column" flexShrink={0} {...(wideCols ? { width: wideCols } : {})}>
-                  <Text dimColor wrap={term ? 'truncate' : 'wrap'}>{CARDS.find(c => c.id === card)?.about}</Text>
-                  {term ? null : <Box key="settings-card-gap" height={CARD_ROW_GAP} flexShrink={0} />}
-                </Box>
-              )}
-              <Box key="settings-rows" flexDirection="column" alignItems="flex-start" gap={term ? 0 : CARD_ROW_GAP} {...(wideCols ? { width: wideCols, flexShrink: 0 } : {})}>
+              {/* A narrow window scrolls the rows sideways (they keep their full width). A scroll box also cuts what
+                  leaves it at the top or bottom, so while a fixed mode's own list is open (it may open upwards, over the
+                  rows above) the box does not scroll: the dropdowns sit near the left edge, in view. The box reaches the
+                  panel's foot, so its bar sits there in every part, not under the last row. */}
+              <Box key="settings-rows-scroll" flexDirection="column" flexGrow={term ? 0 : 1} {...(rowsScroll && !openChoice ? { overflowX: 'scroll' } : {})}>
+              <Box key="settings-rows" flexDirection="column" alignItems="flex-start" gap={term ? 0 : CARD_ROW_GAP} flexShrink={0}>
+                {/* The line on what the part does: the first row, so it scrolls with the rows and is as wide as they are
+                    (wrapped to the window it took two or three lines and pushed the rows out at the bottom). Its box has
+                    a width of its own, as each row has: in a scroll box the app draws a line without one in the table
+                    font. */}
+                {card === 'context' || card === 'lab' || card === 'show' ? null : (
+                  <Box key="settings-about" width={term ? undefined : '100%'} flexDirection="row">
+                    <Box flexShrink={1} minWidth={0}><Text dimColor wrap={term ? 'truncate' : 'wrap'}>{CARDS.find(c => c.id === card)?.about}</Text></Box>
+                  </Box>
+                )}
                 {card === 'effort' ? [
             ...(term ? [gridRow('effort-lean', 'Lean', [
               <Text key="cheap" dimColor>Cheaper</Text>,
@@ -7541,7 +7544,7 @@ Saved to ${out}.md and .json` }
                 ? (defaultHere && windowNow
                   ? fileMode
                     ? `Still on ${windowLabel(windowNow.raw)}. Send the command to switch this chat to ${windowLabel(config.compactWindow)}.`
-                    : `Still on ${windowLabel(windowNow.raw)}. Send the command: it switches this chat and new chats on this model.`
+                    : `Still on ${windowLabel(windowNow.raw)}. The command switches this chat and new chats on this model.`
                   : `Uses your default, ${windowLabel(config.compactWindow)}.`)
                 : chatWindowWords(chatOverride, state, windowNow).card
               const chatCmd = chatOverride !== null && state !== 'active' && commandPending(chatOverride, windowNow) && (modelMax === undefined || chatOverride <= modelMax)
@@ -7573,7 +7576,10 @@ Saved to ${out}.md and .json` }
                 ]),
                 gridNote('settings-chat-window-now', actual !== null
                   ? `Runs on ${windowLabel(actual)}; new chats start on ${windowLabel(config.compactWindow)}. Your default switches this chat too.`
-                  : chatOverride === null && defaultHere ? now : `${now} ${fileMode ? 'Only this chat: new chats keep your default.' : viaCmdHere ? 'It also sets new chats on this model.' : MORE_ROOM_TIP}`),
+                  : chatOverride === null && defaultHere ? now
+                    // Set with /autocompact for every chat on this model: the line says so already.
+                    : viaCmdHere && !fileMode && now.endsWith('on this model.') ? now
+                    : `${now} ${fileMode ? 'Only this chat: new chats keep your default.' : viaCmdHere ? 'It also sets new chats on this model.' : MORE_ROOM_TIP}`),
               ]
             })(),
 ]) : card === 'model' ? (bare ? [] : [
@@ -7679,7 +7685,7 @@ Saved to ${out}.md and .json` }
               alertToggles[1],
               alertToggles[2],
             ]),
-            gridNote('handoff-alerts-about', 'Context: the chat is nearly full. Running low: a usage limit is close. Cold cache: the next message pays full price.'),
+            gridNote('handoff-alerts-about', 'Context: the chat is nearly full. Running low: a limit is near. Cold cache: full price.'),
 ]) : [
             // The colours are always navy & orange; only light or dark is a choice. (The theme stays a setting for a
             // neutral build later, see names.ts, but is not offered here.)

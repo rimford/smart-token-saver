@@ -2848,7 +2848,7 @@ describe('settings panel', () => {
     expect(await panel.find({ key: 'show-box-cold' })).toBeDefined()
     await panel.press({ key: 'settings-back' })
     // Model has its own card: two choices, and the card says which is on. Off by default; compaction on Auto.
-    expect(await drawn(panel)).toContain("Keeps the chat's model")
+    expect(await drawn(panel)).toContain("The chat's model")
     await panel.press({ key: 'settings-card-model' })
     await panel.press({ key: 'settings-model-on' })
     await panel.select({ key: 'settings-compact-with', value: 'session' })
@@ -5607,7 +5607,7 @@ describe('more room for this chat (R10)', () => {
     roomy(on, 1_000_000, 50_000, 'none')
     await openChat($, on)
     expect(await say($, 'window this 500k')).toBe('Asked for 500k for this chat. It shows as in use once Claude Code confirms it.')
-    expect(await say($, 'window this')).toContain('500k asked.')
+    expect(await say($, 'window this')).toContain('500k asked: in use once')
     expect(chatWindowState(500_000, null, false)).toBe('asked')
     expect(chatWindowState(500_000, { raw: 300_000, modelWindow: 1_000_000 }, false)).toBe('asked')
     expect(chatWindowState(500_000, { raw: 300_000, modelWindow: 1_000_000 }, true)).toBe('not-applied')
@@ -5731,7 +5731,7 @@ describe('more room for this chat (R10)', () => {
     await panel.press({ key: 'settings-chat-window-paste' })
     expect(w.engineState.draft).toBe('/autocompact 500000')
     expect(w.toasts.at(-1)).toBe(AUTOCOMPACT_NOTE)
-    expect(await drawn(panel)).toContain('500k asked.')
+    expect(await drawn(panel)).toContain('500k asked: in use once')
     // Enter: Claude Code pins 500k here and writes it per model; the plugin takes the per-model value out of the file
     // again, so new chats stay on 300k while this chat keeps 500k.
     await w.send($)
@@ -5965,7 +5965,7 @@ describe('more room for this chat (R10)', () => {
     await band.unmount()
   })
 
-  test('settings card in a narrow desktop band: its rows keep the width they were made for and scroll sideways; the top bar stays', async ($, on) => {
+  test('settings card in a narrow desktop band: its rows keep their full width and scroll sideways, the bar at the panel foot; the top bar stays', async ($, on) => {
     roomy(on, 1_000_000, 50_000, 'blocked')
     await openChat($, on)
     await tick()
@@ -5987,6 +5987,7 @@ describe('more room for this chat (R10)', () => {
     const tight = await $.ui.mount({ plugin: 'smarttokensaver', surface: 'desktop', component: 'AbovePrompt', props: { ...props, bodyColumns: 62 } } as never)
     let tree = await tight.drawn()
     expect(propsOf(byKey(tree, 'settings-cards-scroll')).overflowX).toBe('scroll')
+    expect(propsOf(byKey(tree, 'settings-cards-scroll')).flexGrow).toBe(1)
     expect(propsOf(byKey(tree, 'settings-cards')).width).toBe(75)
     await tight.unmount()
     const panel = await $.ui.mount(narrow)
@@ -5995,15 +5996,21 @@ describe('more room for this chat (R10)', () => {
     expect(propsOf(byKey(tree, 'settings-cards-scroll')).overflowX).toBeUndefined()
     await panel.press({ key: 'settings-card-effort' })
     tree = await panel.drawn()
+    // The rows take their own width (no fixed one: 100 cells kept the bar in the widest window) and the box reaches
+    // the panel's foot, so the app's bar, drawn only while a line is wider than the box, sits there.
     expect(propsOf(byKey(tree, 'settings-rows-scroll')).overflowX).toBe('scroll')
-    expect(propsOf(byKey(tree, 'settings-rows')).width).toBe(100)
+    expect(propsOf(byKey(tree, 'settings-rows-scroll')).flexGrow).toBe(1)
+    expect(propsOf(byKey(tree, 'settings-effort')).flexGrow).toBe(1)
+    expect(propsOf(byKey(tree, 'settings-rows')).width).toBeUndefined()
+    // The line on what the part does is a row of its own width, as wide as the rows (no table font, no wrap).
+    expect(propsOf(byKey(tree, 'settings-about')).width).toBe('100%')
+    expect(byKey(byKey(tree, 'settings-rows'), 'settings-about')).toBeDefined()
     expect(byKey(byKey(tree, 'settings-rows-scroll'), 'settings-back')).toBeUndefined()
     await panel.unmount()
-    // A band as wide as the design: nothing scrolls.
+    // A wide band: the same box, no width set.
     const wide = await $.ui.mount(DESK_BAND)
     tree = await wide.drawn()
     expect(byKey(tree, 'settings-rows-scroll')).toBeDefined()
-    expect(propsOf(byKey(tree, 'settings-rows-scroll')).overflowX).toBeUndefined()
     expect(propsOf(byKey(tree, 'settings-rows')).width).toBeUndefined()
     await wide.unmount()
     // Just under the design width, where four cards still fit beside each other: the overview does not scroll (at the

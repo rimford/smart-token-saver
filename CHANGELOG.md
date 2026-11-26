@@ -6,10 +6,12 @@
   the row of sizes and was cut off where the window was narrow, so only the size in use could be picked. On the
   desktop it now sits beside Back and Next. In a narrow window the setup also uses shorter words, stacks its rows and
   keeps a blank row between the text and the choices.
-- **Settings in a narrow window.** The overview and an open card keep the width they were made for and scroll sideways
-  (the overview only where a third row of cards would be cut at the bottom; its titles stay on one line); Back, Guide and
-  ✕ stay where they are. The line on what a part does scrolls with its rows instead of wrapping. The top bar never runs
-  into itself: as the window narrows, the product name goes first, then the part's name, then Guide; ← Settings and ✕ stay.
+- **Settings in a narrow window.** Every part fits the widest window the app gives without a scroll bar (a few hints are
+  shorter for it). In a narrower one an open card's rows keep their full width and scroll sideways, the overview only
+  where a third row of cards would be cut at the bottom (its titles stay on one line). The scroll bar shows only while
+  something is wider than the window, at the panel's foot in every part. The line on what a part does scrolls with its
+  rows instead of wrapping. The top bar never runs into itself: as the window narrows, the product name goes first,
+  then the part's name, then Guide; ← Settings and ✕ stay.
 - **Terminal: the bar above or below the prompt.** Settings → Customize → *Terminal*, in the app and in the terminal. *Below prompt* draws no bar at
   rest and adds a dim status line (effort, cache, context) under the prompt. Alerts, the setup, Settings and a
   Handoff advice still show above. `/smarttokensaver settings` opens Settings, `/smarttokensaver auto` switches Smart.
